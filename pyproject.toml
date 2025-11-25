@@ -1,10 +1,11 @@
 [project]
 name = "blogscraper"
-version = "0.2.0b2"
+version = "0.2.0b3"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "bs4>=0.0.2",
+    "mongoengine>=0.29.1",
     "requests>=2.32.5",
 ]
