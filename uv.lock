@@ -18,7 +18,7 @@ wheels = [
 [[package]]
 name = "blogscraper"
 version = "0.2.0rc1"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "bs4" },
     { name = "mongoengine" },

@@ -10,6 +10,14 @@ dependencies = [
     "requests>=2.32.5",
 ]
 
+[build-system]
+requires = ["uv_build>=0.12.2,<0.13.0"]
+build-backend = "uv_build"
+
+# Flat layout: the blogscraper/ package sits at the repository root.
+[tool.uv.build-backend]
+module-root = ""
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
