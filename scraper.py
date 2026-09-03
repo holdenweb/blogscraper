@@ -51,13 +51,10 @@ def create_entry(entry) -> dict[str, str | list[str]]:
         elif tag == "category":
             result['categories'].append(item_dict)
         elif tag == "id":
-            result['@id'] = item_dict
+            result['post_id'] = item_dict['text']
         else:
             result[tag] = item_dict
     return result
-
-def save_query(query_url, status, text):
-    pass
 
 def fetch_posts(current_url, max_pages=MAX_PAGES):
 
@@ -68,7 +65,6 @@ def fetch_posts(current_url, max_pages=MAX_PAGES):
 
         # Send an HTTP GET request to fetch the posts
         response = requests.get(current_url)
-        save_query(current_url, response.status_code, response.text)
 
         # Check if the request was successful
         if response.status_code == 200:
@@ -94,7 +90,7 @@ def fetch_posts(current_url, max_pages=MAX_PAGES):
         page_count += 1
         if max_pages and page_count >= max_pages:  # Limit for testing.
             break
-        sleep(1)
+        sleep(0.05)
 
 if __name__ == '__main__':
     starting_url = f'https://www.blogger.com/feeds/{BLOG_ID}/posts/default?max-results={MAX_RESULTS}&start-index=1'
