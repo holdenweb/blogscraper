@@ -6,19 +6,18 @@ with their commit rather than being deleted.
 
 ## In progress
 
-- [ ] Phase 1: process scaffold — ADRs, this backlog, pytest harness, fixtures.
-- [ ] Phase 2: `blogscraper/` package skeleton, no import-time side effects.
-- [ ] Phase 3: ingest (posts + comments, idempotent) and table-driven
-      transform, red/green throughout; rebuild `posts`/`comments` from a fresh
-      full scrape, repairing the thumbnail corruption.
+- (nothing — awaiting review of Phase 3 before starting Phase 4)
 
 ## Next
 
 - [ ] Phase 4: fragment export per ADR-0007 (blocked on Phase 3 review).
 - [ ] Image harvest with integrity: `PhotoImage` unique on `src`, post→image
-      reference map (supersedes adhoc15.py).
-- [ ] Rewrite justfile around the package: scrape / transform / images /
-      validate / test / backup.
+      reference map (supersedes adhoc15.py). Note the new `PhotoImage` model
+      maps to the same `photo_image` collection the legacy adhoc15 run
+      populated (111 docs, one duplicate) — decide whether to reuse or rename.
+- [ ] Untitled posts: 16 posts have an empty `<title type="text"/>` (real
+      Blogger data, matches legacy). Phase 4 must derive their slug from the
+      `original_url`, not the title.
 
 ## Awaiting Steve's decision (destructive or policy)
 
@@ -50,3 +49,13 @@ with their commit rather than being deleted.
 - [x] Read-only analysis; thumbnail corruption confirmed by query (2026-09-03).
 - [x] Phase 0 baseline commit — Steve, `54103e8`.
 - [x] shotlands workspace stanza removed — `b36be5b`.
+- [x] Phase 1 scaffold: ADRs 0001–0008, backlog, pytest + live fixtures —
+      `c71ebac`.
+- [x] Phase 2 + 3: `blogscraper` package (ingest, transform), CLI, justfile —
+      `80d6b3d`, `e68adc7`.
+- [x] Phase 3 data rebuild verified against the live blog (2026-09-03):
+      539 posts, 1126 comments, 0 spec violations. Thumbnail corruption
+      repaired (67 distinct URLs, was 1); author_name populated for all;
+      dates are BSON datetimes; comment linkage exact (Σ comment_count ==
+      comment count, 0 orphans); re-scrape + re-transform idempotent. Legacy
+      `blog_post` (538) left untouched for comparison.
