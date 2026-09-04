@@ -27,6 +27,10 @@ transform:
 # Full refresh from the live blog: scrape, then rebuild derived collections.
 refresh: scrape transform
 
+# Generate the fragment tree, images and manifest into build/ (gitignored).
+export:
+    uv run python -m blogscraper export --out build
+
 # Back up the whole database (no longer part of the pipeline - just a backup).
 backup:
     mongodump -d blogscraper

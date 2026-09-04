@@ -65,6 +65,11 @@ class Comment(Document):
 
 
 class PhotoImage(Document):
+    # A fresh collection, not the legacy `photo_image` the superseded adhoc15
+    # run left behind (it holds a duplicate src and no unique index, so building
+    # this model's unique index over it would fail). The legacy collection is
+    # left for Steve to drop; this model owns clean, integrity-checked data.
+    meta = {"collection": "photo"}
     src = StringField(required=True, unique=True)  # URL as it appears in post HTML
     content_type = StringField()
     image = FileField()

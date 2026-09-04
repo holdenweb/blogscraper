@@ -69,6 +69,20 @@ def cmd_validate(args) -> None:
     sys.exit(1 if violations else 0)
 
 
+def cmd_export(args) -> None:
+    init_db(args.db)
+    from blogscraper import export
+
+    result = export.export_all(args.out, decorator=args.decorator)
+    for c in result["collisions"]:
+        print("COLLISION:", c)
+    tail = f"; {len(result['collisions'])} collision(s)." if result["collisions"] else "."
+    print(
+        f"Exported {result['posts']} fragments and {result['images']} images "
+        f"to {args.out}{tail}"
+    )
+
+
 def main(argv=None) -> None:
     parser = argparse.ArgumentParser(prog="blogscraper")
     parser.add_argument("--db", default="blogscraper", help="MongoDB database name")
@@ -90,6 +104,11 @@ def main(argv=None) -> None:
 
     p = sub.add_parser("validate", help="report raw documents violating assumptions")
     p.set_defaults(func=cmd_validate)
+
+    p = sub.add_parser("export", help="generate the fragment tree, images and manifest")
+    p.add_argument("--out", default="build", help="output directory (default: build/)")
+    p.add_argument("--decorator", help="serve-time decorator as pkg.module:callable")
+    p.set_defaults(func=cmd_export)
 
     args = parser.parse_args(argv)
     args.func(args)

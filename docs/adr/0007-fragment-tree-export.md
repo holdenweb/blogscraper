@@ -1,7 +1,10 @@
 # 7. Fragment-tree export with a `${ROOT}` placeholder
 
 Date: 2026-09-03
-Status: Proposed (decoration linkage still open)
+Status: Proposed (decoration linkage still open). The `${ROOT}` delimiter and
+literal-`${` escaping decisions below are **superseded by ADR-0009**, which
+adopts the distinctive `${{{ROOT}}}` sentinel and scans rather than escapes;
+the tree structure, path mirroring, manifest, and decorator injection stand.
 
 ## Context
 

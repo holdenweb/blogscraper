@@ -6,18 +6,21 @@ with their commit rather than being deleted.
 
 ## In progress
 
-- (nothing — awaiting review of Phase 3 before starting Phase 4)
+- (nothing — Phase 4 export core landed; image harvest is the next build)
 
 ## Next
 
-- [ ] Phase 4: fragment export per ADR-0007 (blocked on Phase 3 review).
-- [ ] Image harvest with integrity: `PhotoImage` unique on `src`, post→image
-      reference map (supersedes adhoc15.py). Note the new `PhotoImage` model
-      maps to the same `photo_image` collection the legacy adhoc15 run
-      populated (111 docs, one duplicate) — decide whether to reuse or rename.
-- [ ] Untitled posts: 16 posts have an empty `<title type="text"/>` (real
-      Blogger data, matches legacy). Phase 4 must derive their slug from the
-      `original_url`, not the title.
+- [ ] Image harvest with integrity (`images.py`, supersedes adhoc15.py):
+      populate the `photo` collection (`PhotoImage`, unique on `src`) from post
+      HTML, storing bytes + content-type. Export already rewrites `<img src>`
+      for any image present in that collection and writes the bytes into
+      `build/images/`; until the harvester runs, fragments keep absolute
+      Blogger image URLs. Decision taken: the new model uses a fresh `photo`
+      collection, not the legacy `photo_image` (which has a duplicate src and
+      no unique index); legacy stays for Steve to drop.
+- [ ] Old-URL → new-URL redirect map artefact for the cutover. The data is now
+      all present (every fragment's `original_url` + mirrored `path` in the
+      manifest); emit it as an explicit artefact at export time.
 
 ## Awaiting Steve's decision (destructive or policy)
 
@@ -36,13 +39,13 @@ with their commit rather than being deleted.
 
 ## Later
 
-- [ ] README.md is empty — describe purpose, pipeline, and just recipes.
 - [ ] `version.py` (0.2.0b3) disagrees with pyproject (0.2.0rc1); reconcile or
       generate one from the other.
-- [ ] Old-URL → new-URL redirect map artefact for the cutover (falls out of
-      mirrored paths, ADR-0007; produce it explicitly at export time).
 - [ ] Decide fate of posts present in `dump/` but no longer in the live feed
       (reconciliation report will surface any — none expected).
+- [ ] Untitled posts (16, empty `<title type="text"/>`) get a slug from the URL
+      already, so export handles them; if they need a display title later,
+      derive one at decoration time.
 
 ## Done
 
@@ -59,3 +62,9 @@ with their commit rather than being deleted.
       dates are BSON datetimes; comment linkage exact (Σ comment_count ==
       comment count, 0 orphans); re-scrape + re-transform idempotent. Legacy
       `blog_post` (538) left untouched for comparison.
+- [x] Phase 4 export core (2026-09-04): `${{{ROOT}}}` sentinel + Jinja
+      delimiter hardening (ADR-0009, supersedes 0007's escaping); `export.py`
+      with path mirroring, link/image rewriting, manifest, decorator hook.
+      Verified against the live corpus: 539 fragments on mirrored paths,
+      37 internal links rewritten, publish round-trip resolves, 0 collisions.
+      README written.
