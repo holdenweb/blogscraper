@@ -85,6 +85,43 @@ def test_harvest_is_idempotent(test_db):
     assert PhotoImage.objects.count() == 1
 
 
+def test_image_link_hrefs_finds_only_image_files():
+    from blogscraper.images import image_link_hrefs
+
+    html = (
+        '<a href="https://blogger.googleusercontent.com/s1600/full.png">'
+        '<img src="https://blogger.googleusercontent.com/s400/thumb.png"/></a>'
+        '<a href="https://holdenweb.blogspot.com/2020/01/post.html">a post</a>'
+        '<a href="https://example.com/pic.JPG">external image</a>'  # case-insensitive
+    )
+    hrefs = image_link_hrefs(html)
+    assert "https://blogger.googleusercontent.com/s1600/full.png" in hrefs
+    assert "https://example.com/pic.JPG" in hrefs
+    assert all("post.html" not in h for h in hrefs)
+
+
+def test_harvest_includes_full_size_image_links(test_db):
+    # Blogger wraps the displayed thumbnail in a link to the full-size image;
+    # both must be harvested or "click for full size" breaks post-cutover.
+    from blogscraper.images import harvest
+    from blogscraper.models import PhotoImage, Post
+
+    full = "https://blogger.googleusercontent.com/s1600/full.png"
+    thumb = "https://blogger.googleusercontent.com/s400/thumb.png"
+    Post(
+        post_id="p1",
+        original_url="u",
+        content_html=f'<a href="{full}"><img src="{thumb}"/></a>',
+    ).save()
+
+    fetched = {full: (b"FULL", "image/png"), thumb: (b"THUMB", "image/png")}
+    result = harvest(lambda url: fetched[url])
+
+    assert result["stored"] == 2
+    assert PhotoImage.objects.get(src=full).image.read() == b"FULL"
+    assert PhotoImage.objects.get(src=thumb).image.read() == b"THUMB"
+
+
 def test_harvest_records_failures_without_aborting(test_db):
     from blogscraper.images import harvest
     from blogscraper.models import PhotoImage, Post

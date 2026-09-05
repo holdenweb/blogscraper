@@ -11,9 +11,10 @@ repaired an earlier silent corruption rather than papering over it.
 ## Pipeline
 
 ```
-Atom feed  ──scrape──▶  raw_post / raw_comment  ──transform──▶  post / comment  ──export──▶  build/ (fragments + manifest)
-             (verbatim,                            (typed,                         (${{{ROOT}}}
-              upserted)                             validated)                      placeholders)
+scrape     Atom feed              ─▶  raw_post, raw_comment   (verbatim, upserted)
+transform  raw_post, raw_comment  ─▶  post, comment           (typed, validated)
+images     post                   ─▶  photo                   (Blogger images, GridFS)
+export     post + photo           ─▶  build/  (fragments, images, manifest)
 ```
 
 - **scrape** — walk the public Atom feed (and each commented post's replies
@@ -22,9 +23,14 @@ Atom feed  ──scrape──▶  raw_post / raw_comment  ──transform──�
 - **transform** — rebuild the typed `post`/`comment` collections from raw via a
   single table of per-element rules. It validates the whole corpus first and
   refuses to rebuild if any raw document breaks the table's assumptions.
+- **images** — harvest the Blogger-hosted images each post references — both the
+  displayed `<img src>` and the full-size image its "click for full size" link
+  points at — into the `photo` collection (unique `src`, idempotent, external
+  images left alone).
 - **export** — emit one content-only fragment per post under
   `build/posts/YYYY/MM/slug.html`, mirroring each post's original Blogger path,
-  plus `manifest.json` and (once harvested) `images/`.
+  rewriting harvested image and internal post URLs to placeholders, and writing
+  the harvested images and a `manifest.json` alongside.
 
 Design decisions and their rationale live in [`docs/adr/`](docs/adr/); the work
 queue is [`BACKLOG.md`](BACKLOG.md).
@@ -58,6 +64,12 @@ uv run python -m blogscraper validate
 
 ```bash
 uv run python -m blogscraper transform
+```
+
+Harvest the Blogger-hosted post images into the `photo` collection:
+
+```bash
+just images
 ```
 
 Generate the fragment tree into `build/` (gitignored):
@@ -111,8 +123,8 @@ few DB-backed tests use a scratch `blogscraper_test` database.
 
 ## Layout
 
-- `blogscraper/` — the package: `ingest`, `transform`, `export`, `models`,
-  `__main__` (the CLI). No database connection is made at import time.
+- `blogscraper/` — the package: `ingest`, `transform`, `images`, `export`,
+  `models`, `__main__` (the CLI). No database connection is made at import time.
 - `tests/` — pytest suite and fixtures (real Atom XML sampled from the corpus).
 - `docs/adr/` — architecture decision records.
 - `dump/` — a mongodump of the raw corpus (backup, not tracked).

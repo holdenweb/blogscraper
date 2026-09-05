@@ -90,6 +90,12 @@ def rewrite_content(
         if name:
             img["src"] = f"{IMAGE_ROOT_PLACEHOLDER}/images/{name}"
     for a in soup.find_all("a", href=True):
+        # A link straight to a harvested image (Blogger's "full size" link)
+        # goes to the image root; otherwise a link to one of our own posts.
+        name = image_map.get(a["href"])
+        if name:
+            a["href"] = f"{IMAGE_ROOT_PLACEHOLDER}/images/{name}"
+            continue
         ref = _internal_ref(a["href"], known_paths)
         if ref:
             a["href"] = ref

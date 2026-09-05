@@ -29,6 +29,16 @@ The reference publisher `render_fragment(html, root, image_root=None)` encodes
 the default (`image_root` falls back to `root`); a third-party page processor
 must supply both variables, defaulting `IMAGE_ROOT` to `ROOT` the same way.
 
+## Which images are harvested
+
+Two image references matter per post: the displayed `<img src>` thumbnail, and
+the full-size image Blogger links behind it (`<a href>` straight at an image
+file — present on ~98 posts). Both are harvested into the `photo` collection and
+both are rewritten to `${{{IMAGE_ROOT}}}/images/…` at export, so "click for full
+size" keeps working once Blogger is gone. Only Blogger/Google-hosted images are
+copied; external images (Amazon, PayPal, badges) keep their absolute URLs —
+they are not endangered by the migration and are not ours to rehost.
+
 ## Consequences
 
 Content and image hosting are decoupled without forcing a choice on every

@@ -10,15 +10,10 @@ with their commit rather than being deleted.
 
 ## Next
 
-- [ ] Full-size image links: 98 posts wrap the displayed `<img>` in an
-      `<a href>` to the full-size Blogger image. Export rewrites the `<img src>`
-      but not those `<a href>`, so "click for full size" links break once
-      Blogger is gone. Decide whether to also harvest the full-size images and
-      rewrite those links (needs an export change and probably a second
-      `should_harvest` pass over image-file `<a href>`s).
-- [ ] External post images (~17: Amazon, PayPal, quiz badges) are deliberately
-      left as absolute URLs, not copied onto the new site. Revisit only if any
-      turn out to matter enough to self-host.
+- [ ] External post images (~28 references: 19 `<img src>` + 9 full-size
+      `<a href>`, e.g. Amazon, PayPal, quiz badges) are deliberately left as
+      absolute URLs, not copied onto the new site. Revisit only if any turn out
+      to matter enough to self-host.
 - [ ] Old-URL → new-URL redirect map artefact for the cutover. The data is now
       all present (every fragment's `original_url` + mirrored `path` in the
       manifest); emit it as an explicit artefact at export time.
@@ -86,3 +81,10 @@ with their commit rather than being deleted.
       self-hosts them: 96 files under `build/images/`, 97 `${{{IMAGE_ROOT}}}`
       refs across 67 fragments; divergent-IMAGE_ROOT round-trip verified.
       5 tests red-first; 36 green.
+- [x] Full-size image links (2026-09-05): `images.py` also harvests the
+      full-size Blogger image behind each thumbnail's `<a href>`, and export
+      rewrites those links to `${{{IMAGE_ROOT}}}/images/…` so "click for full
+      size" survives cutover (ADR-0010 updated). Live: `photo` now holds 180
+      images (+84); export rewrites 97 `<img src>` and 89 `<a href>`, leaving
+      9 external image links absolute. 3 tests red-first; 39 green. README and
+      ADR-0010 updated.

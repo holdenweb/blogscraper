@@ -21,6 +21,10 @@ from bs4 import BeautifulSoup
 # The image handed back by a fetcher: raw bytes and a bare content type.
 ImageFetch = Callable[[str], "tuple[bytes, str | None]"]
 
+# Extensions that mark an <a href> as pointing straight at an image file — the
+# "click for full size" links Blogger wraps around a displayed thumbnail.
+IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp")
+
 
 def is_blogger_hosted(src: str) -> bool:
     """True for the Google/Blogger image hosts whose URLs die with the blog."""
@@ -58,15 +62,39 @@ def image_refs(html: str) -> list[dict[str, Any]]:
     return refs
 
 
+def image_link_hrefs(html: str) -> list[str]:
+    """Every `<a href>` pointing straight at an image file in ``html``.
+
+    These are the full-size images Blogger links behind the displayed
+    thumbnail; harvesting them keeps "click for full size" working once the
+    original host is gone.
+    """
+    soup = BeautifulSoup(html or "", "html.parser")
+    hrefs = []
+    for a in soup.find_all("a", href=True):
+        if urlparse(a["href"]).path.lower().endswith(IMAGE_EXTS):
+            hrefs.append(a["href"])
+    return hrefs
+
+
+def _post_image_refs(html: str) -> list[dict[str, Any]]:
+    """Every image a post references: displayed `<img>` and full-size links."""
+    return image_refs(html) + [
+        {"src": href, "alt": None, "width": None, "height": None}
+        for href in image_link_hrefs(html)
+    ]
+
+
 def harvest(
     fetch_image: ImageFetch, *, should_harvest: Callable[[str], bool] = is_blogger_hosted
 ) -> dict[str, Any]:
     """Fetch and store every not-yet-stored Blogger-hosted post image.
 
-    Idempotent: an image already in the collection is not refetched. A fetch
-    that fails is recorded and skipped, never aborting the run. ``fetch_image``
-    is injected (src -> (bytes, content_type)) so tests drive it without the
-    network.
+    Covers both displayed `<img src>` images and the full-size images linked
+    behind them. Idempotent: an image already in the collection is not
+    refetched. A fetch that fails is recorded and skipped, never aborting the
+    run. ``fetch_image`` is injected (src -> (bytes, content_type)) so tests
+    drive it without the network.
     """
     from blogscraper.models import PhotoImage, Post
 
@@ -77,7 +105,7 @@ def harvest(
     handled: set[str] = set()
 
     for post in Post.objects:
-        for ref in image_refs(post.content_html):
+        for ref in _post_image_refs(post.content_html):
             src = ref["src"]
             if not should_harvest(src):
                 external += 1

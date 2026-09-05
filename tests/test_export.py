@@ -108,6 +108,32 @@ def test_rewrite_image_src_only_when_harvested():
     assert other in out  # not harvested, so left alone
 
 
+def test_rewrite_full_size_image_links():
+    # Blogger's "click for full size" <a href> to a harvested image is
+    # rewritten to the image root, just like the <img src> it wraps, while an
+    # internal post link still resolves to the content root.
+    from blogscraper.export import (
+        IMAGE_ROOT_PLACEHOLDER,
+        ROOT_PLACEHOLDER,
+        rewrite_content,
+    )
+
+    full = "https://blogger.googleusercontent.com/s1600/full.png"
+    thumb = "https://blogger.googleusercontent.com/s400/thumb.png"
+    html = (
+        f'<a href="{full}"><img src="{thumb}"/></a>'
+        '<a href="https://holdenweb.blogspot.com/2020/01/known.html">post</a>'
+    )
+    out = rewrite_content(
+        html,
+        image_map={full: "full.png", thumb: "thumb.png"},
+        known_paths={"posts/2020/01/known.html"},
+    )
+    assert f'href="{IMAGE_ROOT_PLACEHOLDER}/images/full.png"' in out
+    assert f'src="{IMAGE_ROOT_PLACEHOLDER}/images/thumb.png"' in out
+    assert f'href="{ROOT_PLACEHOLDER}/posts/2020/01/known.html"' in out
+
+
 def test_resolve_decorator_default_and_dotted_path():
     from blogscraper.export import identity, resolve_decorator
 
