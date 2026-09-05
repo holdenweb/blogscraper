@@ -67,3 +67,12 @@ Root relocation needs no regeneration. Failure modes are loud rather
 than silent. The manifest is the processor's contract: it lists exactly the
 paths that decorate, so the decorate-vs-literal decision needs no per-file
 heuristic. Nothing earlier in the pipeline depends on the serving side.
+
+Because decoration lives entirely on the consumer, the exported tree is a
+decoration-neutral content *source* that many sites can consume at once — each
+mounting it at its own `${{{ROOT}}}` and applying its own chrome. This is the
+deeper value of serve-time decoration: the source is written once and reused,
+not owned by a single front end. It holds only while fragments carry nothing
+site-specific, so any generation-time transform (the `--decorator` hook) must
+stay consumer-neutral, and image hosting is made per-consumer by a second
+placeholder, `${{{IMAGE_ROOT}}}`, defaulting to `${{{ROOT}}}` (ADR-0010).

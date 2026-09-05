@@ -54,6 +54,21 @@ def test_publish_env_substitutes_root_and_nothing_else():
     )
 
 
+def test_image_root_defaults_to_root_but_can_diverge():
+    # Images carry their own placeholder so one source can be consumed by many
+    # sites: by default images follow the content root, but a consumer can
+    # point IMAGE_ROOT at a shared image host without moving the content
+    # (ADR-0010, paralleling Flask's separate static root).
+    from blogscraper.export import render_fragment
+
+    frag = "page ${{{ROOT}}}/posts/x.html img ${{{IMAGE_ROOT}}}/images/y.png"
+    assert render_fragment(frag, "/blog") == (
+        "page /blog/posts/x.html img /blog/images/y.png"
+    )
+    out = render_fragment(frag, "/blog", image_root="https://img.holdenweb.com")
+    assert out == "page /blog/posts/x.html img https://img.holdenweb.com/images/y.png"
+
+
 def test_collision_scan_flags_only_the_sentinels():
     from blogscraper.export import find_collisions
 
@@ -81,7 +96,7 @@ def test_rewrite_internal_post_links_only_when_known():
 
 
 def test_rewrite_image_src_only_when_harvested():
-    from blogscraper.export import ROOT_PLACEHOLDER, rewrite_content
+    from blogscraper.export import IMAGE_ROOT_PLACEHOLDER, rewrite_content
 
     harvested = "https://blogger.googleusercontent.com/img/a.png"
     other = "https://blogger.googleusercontent.com/img/b.png"
@@ -89,7 +104,7 @@ def test_rewrite_image_src_only_when_harvested():
     out = rewrite_content(
         html, image_map={harvested: "a.png"}, known_paths=set()
     )
-    assert f'src="{ROOT_PLACEHOLDER}/images/a.png"' in out
+    assert f'src="{IMAGE_ROOT_PLACEHOLDER}/images/a.png"' in out
     assert other in out  # not harvested, so left alone
 
 
@@ -146,7 +161,7 @@ def test_export_all_writes_fragments_manifest_and_images(tmp_path, test_db):
 
     # The image is rewritten to *some* placeholder path, and whatever name the
     # export chose, that exact file exists with the original bytes.
-    img = re.search(r"\$\{\{\{ROOT\}\}\}/images/([^\"']+)", first)
+    img = re.search(r"\$\{\{\{IMAGE_ROOT\}\}\}/images/([^\"']+)", first)
     assert img, "image src was not rewritten"
     image_name = img.group(1)
     assert (tmp_path / "images" / image_name).read_bytes() == png

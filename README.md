@@ -71,9 +71,9 @@ just export
 
 ## Publishing the fragments
 
-Fragments are content only, with no site chrome. Every generated URL (rewritten
-image `src` and internal post `href`) is written with the placeholder
-`${{{ROOT}}}`; publishing substitutes the site's mounted root through Jinja:
+Fragments are content only, with no site chrome. Generated URLs are written with
+placeholders — `${{{ROOT}}}` for internal post links, `${{{IMAGE_ROOT}}}` for
+images — and publishing substitutes the site's mounted roots through Jinja:
 
 ```python
 from blogscraper.export import render_fragment
@@ -81,13 +81,23 @@ from blogscraper.export import render_fragment
 html = render_fragment(open("build/posts/2026/02/im-depressed.html").read(), "/blog")
 ```
 
+`IMAGE_ROOT` defaults to `ROOT`, so a self-contained tree just works; pass it
+explicitly — `render_fragment(html, "/blog", image_root="https://img.holdenweb.com")`
+— to serve images from a shared host, so one source can be consumed by several
+sites ([ADR-0010](docs/adr/0010-image-root-placeholder.md)).
+
 The publish environment moves *all* of Jinja's delimiters to distinctive
 sentinels (`${{{ }}}`, `${{% %}}}`, `${{# #}}}`), so `${...}`, `{{ ... }}`,
-`{% ... %}` and `{# ... #}` in code and template samples pass through untouched
-— `${{{ROOT}}}` is the only thing that substitutes. The generator scans for
-those sentinels rather than escaping content, so bodies stay byte-faithful (see
-[ADR-0009](docs/adr/0009-distinctive-root-sentinel.md)). Serve-time decoration
-from holdenweb.com can be injected with `--decorator pkg.module:callable`.
+`{% ... %}` and `{# ... #}` in code and template samples pass through untouched —
+only the root placeholders substitute. The generator scans for those sentinels
+rather than escaping content, so bodies stay byte-faithful (see
+[ADR-0009](docs/adr/0009-distinctive-root-sentinel.md)).
+
+Site chrome is applied by the consuming site at serve time: it decorates the
+paths the manifest lists (those under `posts/`) and serves everything else
+literally ([ADR-0007](docs/adr/0007-fragment-tree-export.md)). The generator's
+optional `--decorator pkg.module:callable` hook is for generation-time content
+transforms, not chrome.
 
 ## Tests
 

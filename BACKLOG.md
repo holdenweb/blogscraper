@@ -12,12 +12,12 @@ with their commit rather than being deleted.
 
 - [ ] Image harvest with integrity (`images.py`, supersedes adhoc15.py):
       populate the `photo` collection (`PhotoImage`, unique on `src`) from post
-      HTML, storing bytes + content-type. Export already rewrites `<img src>`
-      for any image present in that collection and writes the bytes into
-      `build/images/`; until the harvester runs, fragments keep absolute
-      Blogger image URLs. Decision taken: the new model uses a fresh `photo`
-      collection, not the legacy `photo_image` (which has a duplicate src and
-      no unique index); legacy stays for Steve to drop.
+      HTML, storing bytes + content-type. Export already rewrites harvested
+      `<img src>` to `${{{IMAGE_ROOT}}}/images/…` (ADR-0010) and writes the
+      bytes into `build/images/`; until the harvester runs, fragments keep
+      absolute Blogger image URLs. Decision taken: the new model uses a fresh
+      `photo` collection, not the legacy `photo_image` (which has a duplicate
+      src and no unique index); legacy stays for Steve to drop.
 - [ ] Old-URL → new-URL redirect map artefact for the cutover. The data is now
       all present (every fragment's `original_url` + mirrored `path` in the
       manifest); emit it as an explicit artefact at export time.
@@ -72,3 +72,7 @@ with their commit rather than being deleted.
       Verified against the live corpus: 539 fragments on mirrored paths,
       37 internal links rewritten, publish round-trip resolves, 0 collisions.
       README written.
+- [x] Decoration selection recorded (ADR-0007, 2026-09-05): serve-time, by kind
+      (`posts/`/manifest decorate, rest literal), plus the multi-consumer
+      rationale. Separate `${{{IMAGE_ROOT}}}` image placeholder defaulting to
+      `${{{ROOT}}}` (ADR-0010), so one source serves many sites.

@@ -35,6 +35,9 @@ COMMENT_START, COMMENT_END = "${{#", "#}}}"
 SENTINELS = (VARIABLE_START, BLOCK_START, COMMENT_START)
 
 ROOT_PLACEHOLDER = f"{VARIABLE_START}ROOT{VARIABLE_END}"  # "${{{ROOT}}}"
+# Images carry a separate placeholder so a consumer can serve them from a shared
+# image host without moving the content; it defaults to ROOT (ADR-0010).
+IMAGE_ROOT_PLACEHOLDER = f"{VARIABLE_START}IMAGE_ROOT{VARIABLE_END}"  # "${{{IMAGE_ROOT}}}"
 
 _POST_PATH = re.compile(r"/(\d{4})/(\d{2})/([^/]*)\.html?$")
 
@@ -85,7 +88,7 @@ def rewrite_content(
     for img in soup.find_all("img"):
         name = image_map.get(img.get("src"))
         if name:
-            img["src"] = f"{ROOT_PLACEHOLDER}/images/{name}"
+            img["src"] = f"{IMAGE_ROOT_PLACEHOLDER}/images/{name}"
     for a in soup.find_all("a", href=True):
         ref = _internal_ref(a["href"], known_paths)
         if ref:
@@ -108,9 +111,15 @@ def make_publish_env() -> jinja2.Environment:
     )
 
 
-def render_fragment(html: str, root: str) -> str:
-    """Substitute the mounted root into a fragment — the publish-time step."""
-    return make_publish_env().from_string(html).render(ROOT=root)
+def render_fragment(html: str, root: str, image_root: str | None = None) -> str:
+    """Substitute the mounted roots into a fragment — the publish-time step.
+
+    ``image_root`` defaults to ``root`` so a self-contained tree just works; a
+    consumer serving images from a separate host passes it explicitly (ADR-0010).
+    """
+    return make_publish_env().from_string(html).render(
+        ROOT=root, IMAGE_ROOT=root if image_root is None else image_root
+    )
 
 
 def identity(html: str, meta: dict) -> str:
