@@ -69,6 +69,20 @@ def cmd_validate(args) -> None:
     sys.exit(1 if violations else 0)
 
 
+def cmd_images(args) -> None:
+    init_db(args.db)
+    from blogscraper import images
+
+    result = images.harvest(images.make_image_fetcher(delay=args.delay))
+    for e in result["errors"]:
+        print("FAILED:", e)
+    print(
+        f"Stored {result['stored']} images "
+        f"({result['existing']} already present, "
+        f"{result['external']} external left in place, {result['failed']} failed)."
+    )
+
+
 def cmd_export(args) -> None:
     init_db(args.db)
     from blogscraper import export
@@ -104,6 +118,10 @@ def main(argv=None) -> None:
 
     p = sub.add_parser("validate", help="report raw documents violating assumptions")
     p.set_defaults(func=cmd_validate)
+
+    p = sub.add_parser("images", help="harvest Blogger-hosted post images into the photo collection")
+    p.add_argument("--delay", type=float, default=0.5, help="seconds between requests")
+    p.set_defaults(func=cmd_images)
 
     p = sub.add_parser("export", help="generate the fragment tree, images and manifest")
     p.add_argument("--out", default="build", help="output directory (default: build/)")

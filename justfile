@@ -27,6 +27,10 @@ transform:
 # Full refresh from the live blog: scrape, then rebuild derived collections.
 refresh: scrape transform
 
+# Harvest Blogger-hosted post images into the photo collection.
+images:
+    uv run python -m blogscraper images
+
 # Generate the fragment tree, images and manifest into build/ (gitignored).
 export:
     uv run python -m blogscraper export --out build

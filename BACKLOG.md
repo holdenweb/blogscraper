@@ -6,18 +6,19 @@ with their commit rather than being deleted.
 
 ## In progress
 
-- (nothing — Phase 4 export core landed; image harvest is the next build)
+- (nothing — image harvest landed; see Next for the follow-ups it surfaced)
 
 ## Next
 
-- [ ] Image harvest with integrity (`images.py`, supersedes adhoc15.py):
-      populate the `photo` collection (`PhotoImage`, unique on `src`) from post
-      HTML, storing bytes + content-type. Export already rewrites harvested
-      `<img src>` to `${{{IMAGE_ROOT}}}/images/…` (ADR-0010) and writes the
-      bytes into `build/images/`; until the harvester runs, fragments keep
-      absolute Blogger image URLs. Decision taken: the new model uses a fresh
-      `photo` collection, not the legacy `photo_image` (which has a duplicate
-      src and no unique index); legacy stays for Steve to drop.
+- [ ] Full-size image links: 98 posts wrap the displayed `<img>` in an
+      `<a href>` to the full-size Blogger image. Export rewrites the `<img src>`
+      but not those `<a href>`, so "click for full size" links break once
+      Blogger is gone. Decide whether to also harvest the full-size images and
+      rewrite those links (needs an export change and probably a second
+      `should_harvest` pass over image-file `<a href>`s).
+- [ ] External post images (~17: Amazon, PayPal, quiz badges) are deliberately
+      left as absolute URLs, not copied onto the new site. Revisit only if any
+      turn out to matter enough to self-host.
 - [ ] Old-URL → new-URL redirect map artefact for the cutover. The data is now
       all present (every fragment's `original_url` + mirrored `path` in the
       manifest); emit it as an explicit artefact at export time.
@@ -28,6 +29,8 @@ with their commit rather than being deleted.
       `duplicated_blog_post` once nothing is wanted from them.
 - [ ] Drop legacy `blog_post` collection after the rebuilt `posts` collection
       is verified against it.
+- [ ] Drop legacy `photo_image` collection (superseded by `photo`); note its
+      GridFS files in the shared `fs` bucket orphan on drop and want cleanup.
 - [ ] Retire the flat legacy scripts (`scraper.py`, `db.py`, `drop.py`,
       `adhoc*.py`, `zz_adhoc*.py`, `no_attribs.py`) — delete, or move to an
       `attic/` directory as the historical record.
@@ -76,3 +79,10 @@ with their commit rather than being deleted.
       (`posts/`/manifest decorate, rest literal), plus the multi-consumer
       rationale. Separate `${{{IMAGE_ROOT}}}` image placeholder defaulting to
       `${{{ROOT}}}` (ADR-0010), so one source serves many sites.
+- [x] Image harvest (`images.py`, 2026-09-05): Blogger-hosted `<img src>` into
+      the `photo` collection — unique src, idempotent, external images skipped,
+      failures reported (not swallowed like adhoc15). Live run: 96 images stored
+      (82 png, 14 jpeg), 19 external left in place, 0 failed. Re-export
+      self-hosts them: 96 files under `build/images/`, 97 `${{{IMAGE_ROOT}}}`
+      refs across 67 fragments; divergent-IMAGE_ROOT round-trip verified.
+      5 tests red-first; 36 green.
