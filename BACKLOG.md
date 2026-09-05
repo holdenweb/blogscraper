@@ -31,8 +31,12 @@ with their commit rather than being deleted.
 - [ ] Retire the flat legacy scripts (`scraper.py`, `db.py`, `drop.py`,
       `adhoc*.py`, `zz_adhoc*.py`, `no_attribs.py`) — delete, or move to an
       `attic/` directory as the historical record.
-- [ ] ADR-0007 decoration linkage: decorator injected into the generator vs.
-      decoration wholly on the holdenweb.com publisher side.
+- [ ] Retention of the generator `--decorator` hook. Decoration *selection* is
+      decided (ADR-0007, 2026-09-05: the serve-time processor decorates `posts/`
+      / manifest members, serves the rest literally), which places site chrome
+      on the publisher side. The generator hook is no longer the chrome
+      mechanism — decide whether to keep it for generation-time content
+      transforms or drop it.
 - [ ] Comment rendering: how (and whether) captured comments appear in the
       exported fragment tree.
 - [ ] `dump/` BSON dumps: keep in-tree untracked, commit, or relocate.

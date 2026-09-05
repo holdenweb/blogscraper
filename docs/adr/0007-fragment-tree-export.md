@@ -1,10 +1,11 @@
 # 7. Fragment-tree export with a `${ROOT}` placeholder
 
 Date: 2026-09-03
-Status: Proposed (decoration linkage still open). The `${ROOT}` delimiter and
-literal-`${` escaping decisions below are **superseded by ADR-0009**, which
-adopts the distinctive `${{{ROOT}}}` sentinel and scans rather than escapes;
-the tree structure, path mirroring, manifest, and decorator injection stand.
+Status: Accepted. Decoration **selection** is decided below (2026-09-05). The
+`${ROOT}` delimiter and literal-`${` escaping decisions are **superseded by
+ADR-0009**, which adopts the distinctive `${{{ROOT}}}` sentinel and scans rather
+than escapes; the tree structure, path mirroring, and manifest stand. Whether
+the generator's `--decorator` hook is kept is a remaining backlog item.
 
 ## Context
 
@@ -38,8 +39,31 @@ works is not yet decided.
   as the contract — remains open until the holdenweb.com side takes
   shape.
 
+## Decoration selection (decided 2026-09-05)
+
+Whether a request's content is decorated (wrapped in site chrome by the
+holdenweb.com page processor) or served literally is decided by **kind, not by
+URL extension**: the processor decorates content under `posts/` — equivalently,
+any path present in `manifest.json` — and serves everything else (images and
+other assets) exactly as stored.
+
+An extension rule ("extension ⇒ serve literally") was considered and rejected.
+Post paths deliberately keep their `.html` suffix to mirror Blogger and preserve
+inbound links 1:1, so an extension cannot distinguish a post page (decorate)
+from an asset (literal) — and since every emitted file carries an extension,
+that rule would decorate nothing. Keying on the tree location the export already
+imposes needs no new convention and cannot collide with our own paths. The
+extension test still serves as the obvious fast path for the asset side.
+
+This places decoration at serve time on the publisher side, with the tree plus
+manifest as the contract — the second of the two linkage options above. The
+generator's `--decorator` hook is therefore not the chrome mechanism; it remains
+available for generation-time content transforms (not site chrome), and whether
+it is kept at all is now a backlog question.
+
 ## Consequences
 
 Root relocation needs no regeneration. Failure modes are loud rather
-than silent. The manifest keeps decoration mechanical whichever linkage
-is chosen. Nothing earlier in the pipeline depends on the open decision.
+than silent. The manifest is the processor's contract: it lists exactly the
+paths that decorate, so the decorate-vs-literal decision needs no per-file
+heuristic. Nothing earlier in the pipeline depends on the serving side.
