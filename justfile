@@ -39,26 +39,5 @@ export:
 backup:
     mongodump -d blogscraper
 
-# --- Legacy adhoc pipeline (superseded; kept until the scripts are retired) ---
-
-legacy-scrape:
-    uv run drop.py
-    uv run scraper.py
-    mongodump -d blogscraper
-
-legacy-refresh:
-    uv run drop.py
-    mongorestore --nsInclude=blogscraper.blog_post
-
-legacy-create: legacy-refresh
-    uv run adhoc1.py
-    uv run adhoc2.py
-    uv run adhoc3.py
-    uv run adhoc6.py
-    uv run adhoc7.py
-    uv run adhoc8.py
-    uv run adhoc9.py
-    uv run adhoc10.py
-    uv run adhoc11.py
-    uv run adhoc12.py
-    uv run adhoc13.py
+# The legacy adhoc pipeline (scraper.py, db.py, adhoc*.py) has been retired;
+# it lives in the git history as the record of how the corpus was first built.

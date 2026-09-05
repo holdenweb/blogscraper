@@ -26,9 +26,6 @@ with their commit rather than being deleted.
       is verified against it.
 - [ ] Drop legacy `photo_image` collection (superseded by `photo`); note its
       GridFS files in the shared `fs` bucket orphan on drop and want cleanup.
-- [ ] Retire the flat legacy scripts (`scraper.py`, `db.py`, `drop.py`,
-      `adhoc*.py`, `zz_adhoc*.py`, `no_attribs.py`) — delete, or move to an
-      `attic/` directory as the historical record.
 - [ ] Retention of the generator `--decorator` hook. Decoration *selection* is
       decided (ADR-0007, 2026-09-05: the serve-time processor decorates `posts/`
       / manifest members, serves the rest literally), which places site chrome
@@ -88,3 +85,7 @@ with their commit rather than being deleted.
       images (+84); export rewrites 97 `<img src>` and 89 `<a href>`, leaving
       9 external image links absolute. 3 tests red-first; 39 green. README and
       ADR-0010 updated.
+- [x] Legacy flat pipeline retired — deleted in another session (`d797529`,
+      `be0c134`): all `adhoc*.py`, `scraper.py`, `db.py`, `drop.py`,
+      `no_attribs.py`, `zz_adhoc*.py`. Reconciled here: justfile `legacy-*`
+      recipes removed (they called the deleted files), README layout updated.

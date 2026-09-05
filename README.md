@@ -128,6 +128,7 @@ few DB-backed tests use a scratch `blogscraper_test` database.
 - `tests/` — pytest suite and fixtures (real Atom XML sampled from the corpus).
 - `docs/adr/` — architecture decision records.
 - `dump/` — a mongodump of the raw corpus (backup, not tracked).
-- The flat top-level scripts (`scraper.py`, `db.py`, `adhoc*.py`, …) are the
-  **superseded** original pipeline, kept runnable via the `legacy-*` recipes
-  until retired.
+
+The original flat pipeline (`scraper.py`, `db.py`, the `adhoc*.py` scripts) has
+been retired; it survives in the git history as the record of how the corpus was
+first produced.
