@@ -61,6 +61,14 @@ generator's `--decorator` hook is therefore not the chrome mechanism; it remains
 available for generation-time content transforms (not site chrome), and whether
 it is kept at all is now a backlog question.
 
+Two corollaries for consumers. First, `manifest.json` is itself served
+literally: it is data the processor reads to decorate the pages, not a page to
+be decorated. Second, a post with no title — 16 carry `title: null`, faithfully
+recording an untitled Blogger post — is given a display title by the consumer,
+because titling an untitled post is a presentation decision and presentation is
+the consumer's job. The generator records what the source says (nothing); the
+consumer decides what the reader sees.
+
 ## Consequences
 
 Root relocation needs no regeneration. Failure modes are loud rather
