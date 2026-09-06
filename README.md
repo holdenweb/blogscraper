@@ -30,7 +30,8 @@ export     post + photo           ─▶  build/  (fragments, images, manifest)
 - **export** — emit one content-only fragment per post under
   `build/posts/YYYY/MM/slug.html`, mirroring each post's original Blogger path,
   rewriting harvested image and internal post URLs to placeholders, and writing
-  the harvested images and a `manifest.json` alongside.
+  the harvested images, a `manifest.json`, and a `redirects.json` (old Blogger
+  path → new path, for the cutover 301s) alongside.
 
 Design decisions and their rationale live in [`docs/adr/`](docs/adr/); the work
 queue is [`BACKLOG.md`](BACKLOG.md).
@@ -110,6 +111,13 @@ paths the manifest lists (those under `posts/`) and serves everything else
 literally ([ADR-0007](docs/adr/0007-fragment-tree-export.md)). The generator's
 optional `--decorator pkg.module:callable` hook is for generation-time content
 transforms, not chrome.
+
+The publish helpers and delimiter constants live in the dependency-free
+[`blogscraper/publish.py`](blogscraper/publish.py) (Jinja2 only) so a consuming
+site can copy them rather than depend on the scraper package. `redirects.json`
+carries the cutover 301s in the same placeholder form (`/YYYY/MM/slug.html` →
+`${{{ROOT}}}/posts/YYYY/MM/slug.html`), so the consumer substitutes its mount
+with the same `ROOT`.
 
 ## Tests
 

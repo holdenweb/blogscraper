@@ -92,8 +92,8 @@ def cmd_export(args) -> None:
         print("COLLISION:", c)
     tail = f"; {len(result['collisions'])} collision(s)." if result["collisions"] else "."
     print(
-        f"Exported {result['posts']} fragments and {result['images']} images "
-        f"to {args.out}{tail}"
+        f"Exported {result['posts']} fragments, {result['images']} images and "
+        f"{result['redirects']} redirects to {args.out}{tail}"
     )
 
 

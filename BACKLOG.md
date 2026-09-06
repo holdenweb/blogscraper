@@ -14,9 +14,6 @@ with their commit rather than being deleted.
       `<a href>`, e.g. Amazon, PayPal, quiz badges) are deliberately left as
       absolute URLs, not copied onto the new site. Revisit only if any turn out
       to matter enough to self-host.
-- [ ] Old-URL → new-URL redirect map artefact for the cutover. The data is now
-      all present (every fragment's `original_url` + mirrored `path` in the
-      manifest); emit it as an explicit artefact at export time.
 
 ## Awaiting Steve's decision (destructive or policy)
 
@@ -89,3 +86,11 @@ with their commit rather than being deleted.
       `be0c134`): all `adhoc*.py`, `scraper.py`, `db.py`, `drop.py`,
       `no_attribs.py`, `zz_adhoc*.py`. Reconciled here: justfile `legacy-*`
       recipes removed (they called the deleted files), README layout updated.
+- [x] Consumer-facing hardening (2026-09-05, from the podpack-pages session):
+      (a) ADR-0007 notes that `manifest.json` is served literally and that
+      untitled posts are titled by the consumer; (b) the publish contract
+      (delimiters + `make_publish_env`/`render_fragment`) extracted to the
+      dependency-free `blogscraper/publish.py` for consumers to copy and pin
+      (ADR-0009; `test_publish.py` imports only it); (c) export now writes
+      `redirects.json` — 539 cutover 301s, old Blogger path →
+      `${{{ROOT}}}/posts/…`. 41 tests green.

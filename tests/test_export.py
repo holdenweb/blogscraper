@@ -31,6 +31,23 @@ def test_fragment_path_rejects_unmirrorable_url():
     raise AssertionError("expected ValueError for a non-dated URL")
 
 
+def test_redirect_entry_maps_old_blogger_path_to_placeholdered_new_path():
+    # The cutover 301: old Blogger path -> new fragment path, with ROOT left as
+    # a placeholder so the consumer substitutes its own mount (e.g. /blog).
+    from blogscraper.export import redirect_entry
+
+    entry = redirect_entry("https://holdenweb.blogspot.com/2026/02/im-depressed.html")
+    assert entry == {
+        "from": "/2026/02/im-depressed.html",
+        "to": "${{{ROOT}}}/posts/2026/02/im-depressed.html",
+        "status": 301,
+    }
+    # Untitled posts have a dated URL too, so they map like any other.
+    untitled = redirect_entry("https://holdenweb.blogspot.com/2007/09/.html")
+    assert untitled["from"] == "/2007/09/.html"
+    assert untitled["to"] == "${{{ROOT}}}/posts/2007/09/.html"
+
+
 def test_collision_scan_flags_only_the_sentinels():
     from blogscraper.export import find_collisions
 
@@ -160,6 +177,14 @@ def test_export_all_writes_fragments_manifest_and_images(tmp_path, test_db):
     assert entry["categories"] == ["python"]
     assert entry["comment_count"] == 3
     assert entry["original_url"].endswith("/2020/01/first.html")
+
+    # The cutover redirect map: old Blogger path -> new placeholdered path.
+    redirects = json.loads((tmp_path / "redirects.json").read_text())
+    assert redirects["root_placeholder"] == "${{{ROOT}}}"
+    by_from = {r["from"]: r for r in redirects["redirects"]}
+    assert by_from["/2020/01/first.html"]["to"] == "${{{ROOT}}}/posts/2020/01/first.html"
+    assert by_from["/2020/01/first.html"]["status"] == 301
+    assert "/2019/12/second.html" in by_from
 
     # The published round-trip: mounting at /blog resolves every placeholder.
     published = render_fragment(first, "/blog")

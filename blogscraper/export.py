@@ -51,6 +51,20 @@ def fragment_path(original_url: str) -> str:
     return f"posts/{year}/{month}/{slug}.html"
 
 
+def redirect_entry(original_url: str) -> dict:
+    """A cutover 301 from a post's old Blogger path to its new path.
+
+    ``from`` is the literal old path; ``to`` keeps ROOT as a placeholder so the
+    consumer substitutes its own mount exactly as it does for links inside
+    fragments — with ROOT=/blog, ``/YYYY/MM/slug.html`` -> ``/blog/posts/...``.
+    """
+    return {
+        "from": urlparse(original_url).path,
+        "to": f"{ROOT_PLACEHOLDER}/{fragment_path(original_url)}",
+        "status": 301,
+    }
+
+
 def find_collisions(html: str) -> list[str]:
     """Which placeholder sentinels, if any, occur literally in ``html``."""
     return [s for s in SENTINELS if s in html]
@@ -201,8 +215,21 @@ def export_all(out_dir, *, decorator: str | Callable | None = None) -> dict:
     }
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2))
 
+    # The cutover redirect map: old Blogger paths -> new placeholdered paths,
+    # for the consumer to serve as 301s.
+    redirects = sorted(
+        (redirect_entry(e["original_url"]) for e in manifest_posts),
+        key=lambda r: r["from"],
+    )
+    (out / "redirects.json").write_text(
+        json.dumps(
+            {"root_placeholder": ROOT_PLACEHOLDER, "redirects": redirects}, indent=2
+        )
+    )
+
     return {
         "posts": len(manifest_posts),
         "images": images_written,
+        "redirects": len(redirects),
         "collisions": collisions,
     }
