@@ -31,44 +31,6 @@ def test_fragment_path_rejects_unmirrorable_url():
     raise AssertionError("expected ValueError for a non-dated URL")
 
 
-def test_publish_env_substitutes_root_and_nothing_else():
-    # The load-bearing test for ADR-0009's delimiter hardening. Only the
-    # distinctive placeholder resolves; shell, Jinja-variable, block and
-    # comment syntax in a code sample all pass through verbatim.
-    from blogscraper.export import render_fragment
-
-    body = (
-        "root=${{{ROOT}}} "
-        "shell=${HOME} "
-        "var={{ x }} "
-        "block={% for i in xs %}{{ i }}{% endfor %} "
-        "comment={# note #}"
-    )
-    out = render_fragment(body, "/blog")
-    assert out == (
-        "root=/blog "
-        "shell=${HOME} "
-        "var={{ x }} "
-        "block={% for i in xs %}{{ i }}{% endfor %} "
-        "comment={# note #}"
-    )
-
-
-def test_image_root_defaults_to_root_but_can_diverge():
-    # Images carry their own placeholder so one source can be consumed by many
-    # sites: by default images follow the content root, but a consumer can
-    # point IMAGE_ROOT at a shared image host without moving the content
-    # (ADR-0010, paralleling Flask's separate static root).
-    from blogscraper.export import render_fragment
-
-    frag = "page ${{{ROOT}}}/posts/x.html img ${{{IMAGE_ROOT}}}/images/y.png"
-    assert render_fragment(frag, "/blog") == (
-        "page /blog/posts/x.html img /blog/images/y.png"
-    )
-    out = render_fragment(frag, "/blog", image_root="https://img.holdenweb.com")
-    assert out == "page /blog/posts/x.html img https://img.holdenweb.com/images/y.png"
-
-
 def test_collision_scan_flags_only_the_sentinels():
     from blogscraper.export import find_collisions
 
@@ -144,8 +106,8 @@ def test_resolve_decorator_default_and_dotted_path():
 
 
 def test_export_all_writes_fragments_manifest_and_images(tmp_path, test_db):
-    from blogscraper.export import render_fragment
     from blogscraper.models import PhotoImage, Post
+    from blogscraper.publish import render_fragment
 
     png = b"\x89PNG\r\n\x1a\nFAKEBYTES"
     src = "https://blogger.googleusercontent.com/img/pic.png"

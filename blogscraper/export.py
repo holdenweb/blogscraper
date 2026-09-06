@@ -24,20 +24,16 @@ from pathlib import Path
 from typing import Callable
 from urllib.parse import urlparse
 
-import jinja2
 from bs4 import BeautifulSoup
 
-# The delimiter contract (ADR-0009), defined once so the strings the generator
-# must avoid and the strings Jinja will interpret cannot drift apart.
-VARIABLE_START, VARIABLE_END = "${{{", "}}}"
-BLOCK_START, BLOCK_END = "${{%", "%}}}"
-COMMENT_START, COMMENT_END = "${{#", "#}}}"
-SENTINELS = (VARIABLE_START, BLOCK_START, COMMENT_START)
-
-ROOT_PLACEHOLDER = f"{VARIABLE_START}ROOT{VARIABLE_END}"  # "${{{ROOT}}}"
-# Images carry a separate placeholder so a consumer can serve them from a shared
-# image host without moving the content; it defaults to ROOT (ADR-0010).
-IMAGE_ROOT_PLACEHOLDER = f"{VARIABLE_START}IMAGE_ROOT{VARIABLE_END}"  # "${{{IMAGE_ROOT}}}"
+# The publish-time contract — the delimiter constants and the render helpers —
+# lives in its own dependency-free module so a consumer can copy it (ADR-0009).
+# The generator imports the pieces it needs to emit matching placeholders.
+from blogscraper.publish import (
+    IMAGE_ROOT_PLACEHOLDER,
+    ROOT_PLACEHOLDER,
+    SENTINELS,
+)
 
 _POST_PATH = re.compile(r"/(\d{4})/(\d{2})/([^/]*)\.html?$")
 
@@ -100,32 +96,6 @@ def rewrite_content(
         if ref:
             a["href"] = ref
     return str(soup)
-
-
-def make_publish_env() -> jinja2.Environment:
-    """Jinja env whose delimiters are all moved off content-likely syntax."""
-    return jinja2.Environment(
-        variable_start_string=VARIABLE_START,
-        variable_end_string=VARIABLE_END,
-        block_start_string=BLOCK_START,
-        block_end_string=BLOCK_END,
-        comment_start_string=COMMENT_START,
-        comment_end_string=COMMENT_END,
-        undefined=jinja2.StrictUndefined,
-        autoescape=False,
-        keep_trailing_newline=True,
-    )
-
-
-def render_fragment(html: str, root: str, image_root: str | None = None) -> str:
-    """Substitute the mounted roots into a fragment — the publish-time step.
-
-    ``image_root`` defaults to ``root`` so a self-contained tree just works; a
-    consumer serving images from a separate host passes it explicitly (ADR-0010).
-    """
-    return make_publish_env().from_string(html).render(
-        ROOT=root, IMAGE_ROOT=root if image_root is None else image_root
-    )
 
 
 def identity(html: str, meta: dict) -> str:

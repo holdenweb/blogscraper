@@ -40,9 +40,14 @@ blog may well publish a Jinja or Django tutorial containing `{% for %}` — whic
   - comment `${{#` … `#}}}`
   - `undefined=StrictUndefined`; `autoescape=False` — fragments are HTML we emit
     deliberately, and the only substitution is a root-prefix URL.
-- These delimiter strings live in one place in `export.py`, shared by both the
-  generator and the publish helper, so the strings the generator must avoid and
-  the strings Jinja will interpret cannot drift apart.
+- These delimiter strings and the publish helpers (`make_publish_env`,
+  `render_fragment`) live in one dependency-free module, `blogscraper/publish.py`
+  (Jinja2 only). The generator imports them, so the strings it must avoid and the
+  strings Jinja will interpret cannot drift apart; and because the module carries
+  none of the scraper's dependencies (bs4, mongoengine, requests), a consuming
+  site **copies** it rather than depending on the scraper package, pinning it
+  with a test so a delimiter change here surfaces there instead of silently
+  breaking rendering.
 - No content is escaped. The generator instead **scans** each fragment's source
   for any of the three start sentinels and reports collisions — loud, not
   silent. Zero today; if authored content ever contains one, we hear about it
