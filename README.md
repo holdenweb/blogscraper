@@ -119,6 +119,11 @@ carries the cutover 301s in the same placeholder form (`/YYYY/MM/slug.html` →
 `${{{ROOT}}}/posts/YYYY/MM/slug.html`), so the consumer substitutes its mount
 with the same `ROOT`.
 
+Those 301s belong to whatever serves the **site root**: the `from` paths are
+site-root paths, not under `${{{ROOT}}}`, so the redirect map is applied by the
+site's top-level app, not by the blog mount that consumes the fragments.
+`redirects.json` itself is just served literally alongside `manifest.json`.
+
 ## Tests
 
 ```bash
