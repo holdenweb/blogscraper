@@ -136,7 +136,7 @@ def main(argv=None) -> None:
     p.add_argument("--decorator", help="serve-time decorator as pkg.module:callable")
     p.set_defaults(func=cmd_export)
 
-    p = sub.add_parser("tags", help="rebuild the tags collection (category term -> post ids)")
+    p = sub.add_parser("tags", help="rebuild the tag collection (category term -> post ids)")
     p.set_defaults(func=cmd_tags)
 
     args = parser.parse_args(argv)

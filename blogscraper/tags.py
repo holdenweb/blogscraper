@@ -1,4 +1,4 @@
-"""Build the tags collection: an inverted index from category term to post ids.
+"""Build the tag collection: an inverted index from category term to post ids.
 
 Each Post lists its Blogger categories in ``categories``; this inverts that into
 one document per term, holding the post_ids that carry it. Like the other
@@ -26,7 +26,7 @@ def tag_index(posts: Iterable[Any]) -> dict[str, list[str]]:
 
 
 def build_tags() -> dict[str, int]:
-    """Drop and rebuild the `tags` collection from the current posts."""
+    """Drop and rebuild the `tag` collection from the current posts."""
     from blogscraper.models import Post, Tag
 
     index = tag_index(Post.objects)

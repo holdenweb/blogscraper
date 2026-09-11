@@ -31,6 +31,8 @@ with their commit rather than being deleted.
       transforms or drop it.
 - [ ] Comment rendering: how (and whether) captured comments appear in the
       exported fragment tree.
+- [ ] Better inter-linking of the blog articles, possibly via a sidebar.
+
 - [ ] `dump/` BSON dumps: keep in-tree untracked, commit, or relocate.
 
 ## Later
@@ -94,3 +96,8 @@ with their commit rather than being deleted.
       (ADR-0009; `test_publish.py` imports only it); (c) export now writes
       `redirects.json` — 539 cutover 301s, old Blogger path →
       `${{{ROOT}}}/posts/…`. 41 tests green.
+- [x] Tag collection (2026-09-11): `just tags` builds a `tag` collection — one
+      document per category term with the `post_id`s carrying it, derived from
+      `Post.categories`, drop-and-rebuild (ADR-0004). Live: 752 tags over 1781
+      taggings. Steve renamed the collection `tags`→`tag` and the model was
+      reconciled to match. 44 tests green.

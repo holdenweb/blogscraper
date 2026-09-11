@@ -81,8 +81,7 @@ class PhotoImage(Document):
 class Tag(Document):
     # An inverted index of Post.categories: one document per term, listing the
     # post_ids of the posts that carry it. Derived from Post, rebuilt at will
-    # (ADR-0004). The collection is `tags` (plural, as requested) though the
-    # other derived collections are singular.
-    meta = {"collection": "tags"}
+    # (ADR-0004).
+    meta = {"collection": "tag"}
     tag = StringField(required=True, unique=True)
     entries = ListField(StringField())  # post_ids of the posts carrying this tag

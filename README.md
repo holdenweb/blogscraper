@@ -14,6 +14,7 @@ repaired an earlier silent corruption rather than papering over it.
 scrape     Atom feed              ─▶  raw_post, raw_comment   (verbatim, upserted)
 transform  raw_post, raw_comment  ─▶  post, comment           (typed, validated)
 images     post                   ─▶  photo                   (Blogger images, GridFS)
+tags       post                   ─▶  tag                     (category term -> post ids)
 export     post + photo           ─▶  build/  (fragments, images, manifest)
 ```
 
@@ -27,6 +28,9 @@ export     post + photo           ─▶  build/  (fragments, images, manifest)
   displayed `<img src>` and the full-size image its "click for full size" link
   points at — into the `photo` collection (unique `src`, idempotent, external
   images left alone).
+- **tags** — invert `Post.categories` into a `tag` collection: one document per
+  category term, holding the `post_id`s that carry it. Rebuilt from `post` at
+  will, like the other derived collections.
 - **export** — emit one content-only fragment per post under
   `build/posts/YYYY/MM/slug.html`, mirroring each post's original Blogger path,
   rewriting harvested image and internal post URLs to placeholders, and writing
@@ -71,6 +75,12 @@ Harvest the Blogger-hosted post images into the `photo` collection:
 
 ```bash
 just images
+```
+
+Rebuild the tag collection (each category term → the post ids carrying it):
+
+```bash
+just tags
 ```
 
 Generate the fragment tree into `build/` (gitignored):
