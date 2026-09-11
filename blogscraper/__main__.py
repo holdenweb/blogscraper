@@ -97,6 +97,14 @@ def cmd_export(args) -> None:
     )
 
 
+def cmd_tags(args) -> None:
+    init_db(args.db)
+    from blogscraper import tags
+
+    result = tags.build_tags()
+    print(f"Built {result['tags']} tags over {result['taggings']} post taggings.")
+
+
 def main(argv=None) -> None:
     parser = argparse.ArgumentParser(prog="blogscraper")
     parser.add_argument("--db", default="blogscraper", help="MongoDB database name")
@@ -127,6 +135,9 @@ def main(argv=None) -> None:
     p.add_argument("--out", default="build", help="output directory (default: build/)")
     p.add_argument("--decorator", help="serve-time decorator as pkg.module:callable")
     p.set_defaults(func=cmd_export)
+
+    p = sub.add_parser("tags", help="rebuild the tags collection (category term -> post ids)")
+    p.set_defaults(func=cmd_tags)
 
     args = parser.parse_args(argv)
     args.func(args)

@@ -31,6 +31,10 @@ refresh: scrape transform
 images:
     uv run python -m blogscraper images
 
+# Rebuild the tags collection: each category term -> the post ids carrying it.
+tags:
+    uv run python -m blogscraper tags
+
 # Generate the fragment tree, images and manifest into build/ (gitignored).
 export:
     uv run python -m blogscraper export --out build
