@@ -12,6 +12,8 @@ from mongoengine import (
     DictField,
     Document,
     DynamicDocument,
+    EmbeddedDocument,
+    EmbeddedDocumentListField,
     FileField,
     IntField,
     ListField,
@@ -85,3 +87,43 @@ class Tag(Document):
     meta = {"collection": "tag"}
     tag = StringField(required=True, unique=True)
     entries = ListField(StringField())  # post_ids of the posts carrying this tag
+
+
+class ArtimaComment(EmbeddedDocument):
+    # One reply on a Jive forum thread, as scraped from the flat view.
+    message_id = IntField()
+    author_name = StringField()
+    author_nickname = StringField()
+    author_posts = IntField()  # the author's forum post count at scrape time
+    author_registered = StringField()  # e.g. "Sep, 2005"
+    posted = DateTimeField()
+    subject = StringField()
+    body_html = StringField()
+
+
+class ArtimaEntry(Document):
+    # The seven posts from Steve's old Artima weblog, each with its comments
+    # embedded. A standalone collection, unrelated to the Blogger pipeline.
+    # `published` is the precise timestamp from the forum; `published_display`
+    # the date string the post page shows. Artima had no tags, so `tags` is
+    # captured but empty.
+    meta = {"collection": "artima"}
+    thread_id = IntField(required=True, unique=True)
+    forum_id = IntField()
+    permalink = StringField()
+    title = StringField()
+    author_name = StringField()
+    author_nickname = StringField()
+    author_posts = IntField()
+    author_registered = StringField()
+    message_id = IntField()  # the forum message id of the entry itself
+    published = DateTimeField()
+    published_display = StringField()
+    summary = StringField()
+    body_html = StringField()
+    blogger_bio = StringField()
+    copyright = StringField()
+    comment_count = IntField()
+    tags = ListField(StringField())
+    comments = EmbeddedDocumentListField(ArtimaComment)
+    scraped_at = DateTimeField()

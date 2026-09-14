@@ -105,6 +105,15 @@ def cmd_tags(args) -> None:
     print(f"Built {result['tags']} tags over {result['taggings']} post taggings.")
 
 
+def cmd_artima(args) -> None:
+    init_db(args.db)
+    from blogscraper import artima, ingest
+
+    fetch = ingest.make_fetcher(delay=args.delay)
+    count = artima.scrape_artima(fetch)
+    print(f"Scraped {count} Artima entries into the artima collection.")
+
+
 def main(argv=None) -> None:
     parser = argparse.ArgumentParser(prog="blogscraper")
     parser.add_argument("--db", default="blogscraper", help="MongoDB database name")
@@ -138,6 +147,10 @@ def main(argv=None) -> None:
 
     p = sub.add_parser("tags", help="rebuild the tag collection (category term -> post ids)")
     p.set_defaults(func=cmd_tags)
+
+    p = sub.add_parser("artima", help="scrape the old Artima weblog into the artima collection")
+    p.add_argument("--delay", type=float, default=0.5, help="seconds between requests")
+    p.set_defaults(func=cmd_artima)
 
     args = parser.parse_args(argv)
     args.func(args)

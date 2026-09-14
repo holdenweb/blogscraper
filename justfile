@@ -35,6 +35,10 @@ images:
 tags:
     uv run python -m blogscraper tags
 
+# Scrape the old Artima weblog (entries + comments) into the artima collection.
+artima:
+    uv run python -m blogscraper artima
+
 # Generate the fragment tree, images and manifest into build/ (gitignored).
 export:
     uv run python -m blogscraper export --out build

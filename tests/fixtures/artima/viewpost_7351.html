@@ -1,0 +1,337 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>United We Stand [Not]?</title>
+<meta charset="utf-8">
+<meta name="author" content="Steve Holden" />
+<link rel="stylesheet" type="text/css" href="/artima.css" />
+<link rel="shortcut icon" href="/favicon.ico" />
+</head>
+<body><table width="100%" cellspacing="0">
+<tr>
+<td align="left" valign="bottom">
+<a href="/index.jsp"><img src="/images/a7.gif" alt="The Artima Developer Community" border="0" width="550" height="43" /></a>
+</td>
+</table>
+<table width="100%" bgcolor="#333333">
+<tr>
+<td align="center">
+<div class="ml">
+<a href="/articles" class="hl">Articles</a>&nbsp;|
+<a href="/news/index.jsp" class="hl">News</a>&nbsp;|
+<a href="/weblogs/index.jsp" class="hl">Weblogs</a>&nbsp;|
+<a href="/shop/catalog" class="hl">Books</a>&nbsp;|
+<a href="/forums/index.jsp" class="hl">Forums</a>
+</div>
+</td>
+</tr>
+</table>
+<table width="100%" bgcolor="#CCCCCC">
+<tr>
+<td align="center">
+<div class="sc">
+<a href="/weblogs/index.jsp">Artima Weblogs</a>&nbsp;| 
+
+<a href="/weblogs/index.jsp?blogger=holdenweb">Steve Holden's Weblog</a>&nbsp;| 
+
+<a href="/forums/flat.jsp?forum=106&thread=7351">Discuss</a>&nbsp;| 
+<a href="mailto:?subject=United We Stand [Not]?&body= %0AArtima Weblogs %0AUnited We Stand [Not]? %0Aby Steve Holden %0A%0Ahttps://www.artima.com/weblogs/viewpost.jsp?thread=7351">Email</a>&nbsp;| 
+<a href="viewpostP.jsp?thread=7351">Print</a>&nbsp;| 
+<a href="/weblogs/bloggers.jsp">Bloggers</a>&nbsp;| 
+<a class= "sl" href="viewpost.jsp?thread=5870" title="How Much Profit is Enough?">Previous</a></a>&nbsp;| 
+<a class= "sl" href="viewpost.jsp?thread=11058" title="A Consultant's Conference">Next</a></a>
+</div>
+</td>
+</tr>
+</table>
+<table width="100%" bgcolor="#EEEEEE">
+<tr>
+<td align="center">
+<div class="sc">
+<span style="color: #555555">Sponsored Link</span> <span style="color: #888888">&bull;</span> 
+<script language='JavaScript' type='text/javascript' src='https://www.artima.com/zcr/adx.js'></script>
+<script language='JavaScript' type='text/javascript'>
+<!--
+   if (!document.phpAds_used) document.phpAds_used = ',';
+   phpAds_random = new String (Math.random()); phpAds_random = phpAds_random.substring(2,11);
+   
+   document.write ("<" + "script language='JavaScript' type='text/javascript' src='");
+   document.write ("https://www.artima.com/zcr/adjs.php?n=" + phpAds_random);
+   document.write ("&amp;what=zone:9&amp;target=_top");   document.write ("&amp;exclude=" + document.phpAds_used);
+   if (document.referrer)
+      document.write ("&amp;referer=" + escape(document.referrer));
+   document.write ("'><" + "/script>");
+//-->
+</script><noscript><a href='https://www.artima.com/zcr/adclick.php?n=a799ecf6' target='_top'><img src='https://www.artima.com/zcr/adview.php?what=zone:9&amp;n=a0587811' border='0' alt=''></a></noscript>
+</div>
+</td>
+</tr>
+</table>
+<BR>
+<div class="vegies">
+<div class="tc">
+<span class="sts">Still Crazy After All These Years</span><br />
+<span class="ts">United We Stand [Not]?</span><br />
+<span class="as">by Steve Holden</span><br />
+<span class="pd">July 22, 2003</span><br />
+</div>
+
+
+
+
+<blockquote>
+<b>Summary</b><br>
+While I'm all for healthy competition, the open source world might be taking it a bit too far.
+
+</blockquote>
+
+<hr align="left" width="90%">
+
+
+
+<table align="right">
+<tr>
+<td>
+<div class="adnotice">
+Advertisement
+</div>
+<center>
+<script language='JavaScript' type='text/javascript' src='https://www.artima.com/zcr/adx.js'></script>
+<script language='JavaScript' type='text/javascript'>
+<!--
+if (!document.phpAds_used) document.phpAds_used = ',';
+phpAds_random = new String (Math.random()); phpAds_random = phpAds_random.substring(2,11);
+document.write ("<" + "script language='JavaScript' type='text/javascript' src='");
+document.write ("https://www.artima.com/zcr/adjs.php?n=" + phpAds_random);
+document.write ("&amp;what=zone:2");
+document.write ("&amp;exclude=" + document.phpAds_used);
+if (document.referrer)
+document.write ("&amp;referer=" + escape(document.referrer));
+document.write ("'><" + "/script>");
+//-->
+</script><noscript><a href='https://www.artima.com/zcr/adclick.php?n=a74ab060' target='_blank'><img src='https://www.artima.com/zcr/adview.php?what=zone:2&amp;n=a74ab060' border='0' alt=''></a></noscript>
+
+</center>
+ </td>
+</tr>
+</table>
+
+<p>
+<h1>The Commoditization of the Platform</h1>
+<p>
+At the end of a gruelling week at OSCON, the O'Reilly Open Source Conference in Portland, Oregon, I considered the state of the open source world. One of the advantages of having your company run a conference is that you get to give the keynote speech, which is how come I (and 1500 others) got to hear Tim O'Reilly speak on "The Open Source Paradigm Shift".
+</p>
+<p>
+O'Reilly is an intelligent and insightful guy, so it was a pleasure to hear his talk. I won't attempt to summarise it -- you can read it in his own weblog (apparently, if I can believe what I overheard on the conference floor, prefaced by remarks to the effect that "you should read this if you want to know what I said rather than  what other people's blogs say I said").
+</p>
+<p>
+From my point of view the most interesting thing was the way he took me back to 1985, when I was a Sun Microsystems Senior Technical Support Specialist and the brave talk in the company was about how we would "bring Unix to the desktop". Right. What actually happened, of course, was that Apollo and Digital (where are they now?) and H-P and Sun and IBM all spent years beating the hell out of each other for dominance of the corporate Unix desktop market, only to wake up and find that a young upstart called Microsoft, more focused on their goal and with fewer competitors trying to exploit their chosen (and by then non-proprietary) hardware platform, had taken control of the desktop while the Unix vendors were still licking the wounds they'd given each other.
+</p>
+<p>
+The rest, as they say, is history. I have said many uncomplimentary things about Microsoft, but I have never been able to criticize Bill Gates' business instincts. He and his management team saw the opportunity that the disarray among the competition represented and exploited it ruthlessly. The Common Desktop Environment, the Unix world's eventual attempt to arrive at an X Window-based platform that would allow application interoperability, was always going to be too little and too late.
+</p>
+<h1>Open Source Diversity</h1>
+<p>
+Why are these memories significant at this particular moment? Because Tim O'Reilly very lucidly explained how the open source world was commoditizing the software market to the extent that the new killer apps are Amazon.com, Google, PayPal and the like - web services. By buying or reviewing a book on Google you actually modify the way the application will respond to future inputs, event though the code is determinedly proprietary. So the the operating system and the database and the programming languages are now commodities, and the applications that process the user data represent the new proprietary battleground.
+</p>
+<p>
+The seminal moment came the next evening, when I was entertained to dinner by my publisher, Sams, with a bunch of my fellow authors. Halfway through the evening an author across the table from me said "I hate X", where X was (if I remember correctly: publishers can be generous with their wine on these occasions) an open source programming language. I berated him for wasting emotional energy - as sensible to hate the color green, or cheese, neither of which will change no matter how vehemently it is vilified. Next day, bells started ringing.
+</p>
+<p>
+I was reminded especially of the industry response to Sun's introduction of NeWS, the Network extensible Window System. A fine piece of technology based on the PostScript graphical model, using real-world units rather than pixels to describe the shapes to be rendered (and therefore well-to displays of varying resolutions), with the ability to deliver compact interpretable descriptions of the required graphics to the desktop rendering engine rather than bulky bitmaps (and therefore more efficient in its use of network bandwidth,then a scarce resource). 
+</p>
+<p>
+In short, something so clearly fitted to the tasks for which it had been designed that <i>all</i> the competing workstation vendors immediately banded together to support X Window, thus ensuring the death of a beautiful concept. It is not my intention to bemoan the fact that superior marketing is much more important to business success than superior technology. Even I am not such an idealist. But there is a lesson here, relevant to today's situation. If Sun had chosen to abandon NeWS earlier, or if the competition had adopted it rather than competing, there would have been less chance for Microsoft to succeed against them all.
+</p>
+<h1>Too Much of a Good Thing?</h1>
+<p>
+The open source world is presumably interested in proving the superiority of the open source development model, as contrasted to the proprietary techniques adopted by more traditionally commercial vendors. Yet the Perl programmer sees as "the opposition" not Visual Basic, but Python, or Ruby, or Ocaml. The Debian user "hates" Red Hat, or Suse, or Mandrake rather than Windows. MySQL users compete not against Oracle or Sybase users but against PostgreSQL, MSQL and SQLlite.
+</p>
+<p>
+Competition is a good thing, but huge amounts of talent and energy are being wasted duplicating in one language functionality that is already available in one or two or three others, simply because of the almost religious fervor with which the devotees of the various open source languages, tools and platforms seek to prove the superiority of their own particular chosen technologies. This is madness, and it's certainly not the way to win mindshare among the uninformed.
+</p>
+<p>
+My own opinion, for what it's worth, is that we should seek to improve the interoperability of open source systems and components. If a given piece of functionality is available in, say, Perl then it should be easier for a Python or Ruby programmer to use the Perl module than it is to rewrite it (with a few "minor" tweaks and incompatibilities) in the favored language. We should focus on the goal of proving that open is better than proprietary, and deriving the benefits of avoiding such wasteful duplications.
+</p>
+<p>
+To this end I see both Parrot and Mono as encouraging signs, even despite technical misgivings, in that they seek to provide and support interoperability rather than emphasise the superiority of one technology over others. I particularly like the way that PostgreSQL is so determinedly language-agnostic, having the ability to support components programmed in Perl, Python, Ruby and several other languages.
+</p>
+<p>
+There's a lot further to go , however, in getting the open source world to wake up and smell the coffee. I couldn't say it any better than the quote from O'Reilly on the front cover of the conference program: "One of the greatest challenges for open source in the next few years is to understand and adapt to the paradign shift implicit in network computing, and to shed the legacy thinking of the desktop era". Interestingly, he was talking about technological developments, but the concept is just as relevantly applied to human behavior.
+</p>
+
+<h1>Talk Back!</h1>
+
+<p>
+Have an opinion?
+
+
+Readers have already posted
+
+<a href="../forums/flat.jsp?forum=106&thread=7351">5
+
+comments</a>
+about this weblog entry. Why not
+
+<a href="../forums/post.jsp?forum=106&thread=7351&reply=true">add yours</a>?
+
+
+<h1>RSS Feed</h1>
+
+<p>
+If you'd like to be notified whenever Steve Holden adds a new entry to <a href="index.jsp?blogger=holdenweb">his weblog</a>, subscribe to his <a href="feeds/bloggers/holdenweb.rss">RSS feed</a>.
+
+<center>
+<div class="sociallinks">
+  <a href="http://digg.com/submit?phase=2&url=http%3A%2F%2Fwww.artima.com%2Fweblogs%2Fviewpost.jsp%3Fthread%3D7351&title=United+We+Stand+%5BNot%5D%3F&bodytext=While+I%27m+all+for+healthy+competition%2C+the+open+source+world+might+be+taking+it+a+bit+too+far.&topic=programming">
+    <img src="/images/digg.gif" alt="Digg"
+         border="0" height="14" hspace="8" width="16" />Digg
+  </a>
+  |
+  <a href="http://del.icio.us/post?url=http%3A%2F%2Fwww.artima.com%2Fweblogs%2Fviewpost.jsp%3Fthread%3D7351&title=United+We+Stand+%5BNot%5D%3F">
+    <img src="/images/delicious.gif" alt="del.icio.us" 
+         border="0" height="16" hspace="8" width="16" vspace="1" />del.icio.us
+  </a>
+  |
+  <a href="http://programming.reddit.com/submit?url=http%3A%2F%2Fwww.artima.com%2Fweblogs%2Fviewpost.jsp%3Fthread%3D7351&title=United+We+Stand+%5BNot%5D%3F">
+    <img src="/images/reddit.gif" alt="Reddit" 
+         border="0" height="18" hspace="8" width="18" />Reddit
+  </a>  
+</div>
+</center>
+
+<h1>About the Blogger</h1>
+
+<P>
+<table><tr valign="bottom"><td><img src="../images/steveholden.jpg" align="right"></td><td>Steve Holden has been using computers longer than some of you have been alive, and he still isn't tired of it. The fascination is to do with the modeling flexibility that information systems allow. Steve consults to help his clients design and build their network architectures and programmed web systems, and teaches networking, database and security classes. He is the author of "Python Web Programming" (New Riders, 2002) and chaired the PyCon DC 2003 conference.</td></tr></table><p>
+
+<div class="sp">This weblog entry is Copyright &copy; 2003 Steve Holden. All rights reserved.</div>
+</div>
+
+</div>
+<hr width="100%" />
+<table width="50%" align="center">
+<tr>
+<td>
+<div class="horizontaltextadbox">
+<div class="adheadline">Sponsored Links</div>
+<div id="sponsoredlinks">
+</div>
+</div>
+</td>
+</tr>
+</table>
+<hr width="100%" />
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "pub-3911176865765226";
+google_alternate_color = "ffffff";
+google_ad_width = 728;
+google_ad_height = 15;
+google_ad_format = "728x15_0ads_al";
+google_ad_channel = "";
+google_color_border = "ffffff";
+google_color_bg = "FFFFFF";
+google_color_link = "003090";
+google_color_text = "000000";
+google_color_url = "666666";
+//--></script>
+<script type="text/javascript"
+  src="https://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+<br />
+<br />
+<!-- SiteSearch Google -->
+<form method="get" action="https://www.google.com/custom">
+<table border="0" bgcolor="#ffffff">
+<tr><td nowrap="nowrap" valign="top" align="left" height="32">
+<a href="https://www.google.com/">
+<img src="https://www.google.com/logos/Logo_25wht.gif"
+border="0" alt="Google"></img></a>
+</td>
+<td nowrap="nowrap">
+<input type="hidden" name="domains" value="Artima.com"></input>
+<input type="text" name="q" size="31" maxlength="255" value=""></input>
+<input type="submit" name="sa" value="Search"></input>
+</td></tr>
+<tr>
+<td>&nbsp;</td>
+<td nowrap="nowrap">
+<font size="-1" color="#000000">
+<input type="radio" name="sitesearch" value=""></input> Web
+<input type="radio" name="sitesearch" value="Artima.com" checked="checked"></input>Artima.com
+</font>&nbsp;&nbsp;
+<input type="hidden" name="client" value="pub-3911176865765226"></input>
+<input type="hidden" name="forid" value="1"></input>
+<input type="hidden" name="ie" value="ISO-8859-1"></input>
+<input type="hidden" name="oe" value="ISO-8859-1"></input>
+<input type="hidden" name="cof" value="GALT:#008000;GL:1;DIV:#336699;VLC:663399;AH:center;BGC:FFFFFF;LBGC:FFFFFF;ALC:0000FF;LC:0000FF;T:000000;GFNT:0000FF;GIMP:0000FF;LH:50;LW:150;L:https://www.artima.com/images/artima150.gif;S:https://www.artima.com;FORID:1;"></input>
+<input type="hidden" name="hl" value="en"></input>
+</td></tr></table>
+</form>
+<!-- SiteSearch Google -->
+</center>
+<br />
+<div class="sp">
+<div style="text-align: center">
+<a href="https://www.artima.com/copyright.html">Copyright</a> &copy; 1996-2019 Artima, Inc. All Rights Reserved.</a> - <a href="https://www.artima.com/privacy.html">Privacy Policy</a> - <a href="https://www.artima.com/termsofuse.html">Terms of Use</a>
+</div>
+</div>
+<br />
+<script language='JavaScript' type='text/javascript'>
+<!--
+function initBannerVarForZone(zone) {
+        initBannerVarForZoneWithScript(zone, 'adjs_modified');
+}
+
+function initBannerVarForZoneWithScript(zone, phpScript) {
+
+        if (!document.phpAds_used) document.phpAds_used = ',';
+        phpAds_random = new String (Math.random());
+        phpAds_random = phpAds_random.substring(2,11);
+
+        var nextScriptSrc = 'https://www.artima.com/zcr/' + phpScript + '.php?n=' +
+                phpAds_random  +
+                '&amp;what=zone:' + zone + '&amp;target=_top&amp;block=1&amp;blockcampaign=1' +
+                '&amp;exclude=' + document.phpAds_used;
+
+        document.write("<script language='JavaScript' type='text/javascript' src='");
+        document.write(nextScriptSrc);
+        document.write("'><\/script>");
+
+}
+
+function replaceDiv(divID) {
+        document.getElementById(divID).innerHTML = phpadsbanner;
+}
+-->
+</script>
+<script language='JavaScript' type='text/javascript'>
+<!--
+initBannerVarForZone(3);
+-->
+</script>
+
+<script language='JavaScript' type="text/javascript">
+<!--
+replaceDiv('leftskyscraper');
+-->
+</script>
+<script language='JavaScript' type='text/javascript'>
+<!--
+initBannerVarForZoneWithScript(4, 'textman');
+-->
+</script>
+
+<script language='JavaScript' type="text/javascript">
+<!--
+replaceDiv('sponsoredlinks');
+-->
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+  <rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns="http://purl.org/rss/1.0/"
+  >
+
+  <channel rdf:about="http://www.artima.com/weblogs/feeds/bloggers/holdenweb.rss">
+    <title>Steve Holden's Weblog</title>
+    <link>http://www.artima.com/weblogs/index.jsp?blogger=holdenweb</link>
+    <description>
+Artima Weblogs is a community of bloggers posting on a wide range of topics of interest to software developers.
+    </description>
+    <image rdf:resource="http://www.artima.com/images/artima88x33.gif"/>
+    <items>
+      <rdf:Seq>
+        <rdf:li resource="http://www.artima.com/weblogs/viewpost.jsp?thread=41682" />
+        <rdf:li resource="http://www.artima.com/weblogs/viewpost.jsp?thread=102859" />
+        <rdf:li resource="http://www.artima.com/weblogs/viewpost.jsp?thread=42242" />
+        <rdf:li resource="http://www.artima.com/weblogs/viewpost.jsp?thread=41685" />
+        <rdf:li resource="http://www.artima.com/weblogs/viewpost.jsp?thread=11058" />
+        <rdf:li resource="http://www.artima.com/weblogs/viewpost.jsp?thread=7351" />
+        <rdf:li resource="http://www.artima.com/weblogs/viewpost.jsp?thread=5870" />
+      </rdf:Seq>
+    </items>
+  </channel>
+
+  <image rdf:about="http://www.artima.com/images/artima88x33.gif">
+    <title>Artima.com</title>
+    <url>http://www.artima.com/images/artima88x33.gif</url>
+    <link>http://www.artima.com/</link>
+  </image>
+
+  <item rdf:about="http://www.artima.com/weblogs/viewpost.jsp?thread=41682">
+    <title>What Matters About Python?</title>
+    <link>http://www.artima.com/weblogs/viewpost.jsp?thread=41682</link>
+    <description>
+Steve has just agreed to become a correspondent for Python Magazine. What do people need to know?
+    </description>
+  </item>
+
+  <item rdf:about="http://www.artima.com/weblogs/viewpost.jsp?thread=102859">
+    <title>Technorati Profile</title>
+    <link>http://www.artima.com/weblogs/viewpost.jsp?thread=102859</link>
+    <description>
+I am just starting to investigate Technorati. In order to verify the claim that I am the owner of this blog I have to publish a specific string in it. I couldn't bear to just post the string, so I ended up reflecting on blogging and coding in general. Apologies to William Shakespeare. This doesn't mean much.
+    </description>
+  </item>
+
+  <item rdf:about="http://www.artima.com/weblogs/viewpost.jsp?thread=42242">
+    <title>Java is Object-Oriented COBOL</title>
+    <link>http://www.artima.com/weblogs/viewpost.jsp?thread=42242</link>
+    <description>
+Why is this &amp;quot;new&amp;quot; language so annoyingly verbose? Why does it take so much code to express relatively simple ideas? Why is Java drowning in the complexity of its APIs?
+    </description>
+  </item>
+
+  <item rdf:about="http://www.artima.com/weblogs/viewpost.jsp?thread=41685">
+    <title>The Crazy World of Telecommunications Charges</title>
+    <link>http://www.artima.com/weblogs/viewpost.jsp?thread=41685</link>
+    <description>
+As far as telephone service goes, the lunatics are clearly running the asylum. Economics is topsy-turvy in the information age.
+    </description>
+  </item>
+
+  <item rdf:about="http://www.artima.com/weblogs/viewpost.jsp?thread=11058">
+    <title>A Consultant's Conference</title>
+    <link>http://www.artima.com/weblogs/viewpost.jsp?thread=11058</link>
+    <description>
+I'll probably never blog from a conference, since sometimes the true impact of news takes a while to assess. Besides which, sometimes there are other priorities, even when you're at a conference. And then there are other costs ...
+    </description>
+  </item>
+
+  <item rdf:about="http://www.artima.com/weblogs/viewpost.jsp?thread=7351">
+    <title>United We Stand [Not]?</title>
+    <link>http://www.artima.com/weblogs/viewpost.jsp?thread=7351</link>
+    <description>
+While I'm all for healthy competition, the open source world might be taking it a bit too far.
+    </description>
+  </item>
+
+  <item rdf:about="http://www.artima.com/weblogs/viewpost.jsp?thread=5870">
+    <title>How Much Profit is Enough?</title>
+    <link>http://www.artima.com/weblogs/viewpost.jsp?thread=5870</link>
+    <description>
+The open source model assumes that the value of code is not necessarily monetary. Is this a precursor to the new economy, or will the capitalist world succeed in establishing money as the ultimate measure of all worth?
+    </description>
+  </item>
+
+</rdf:RDF>
