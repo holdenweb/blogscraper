@@ -39,7 +39,12 @@ class RawComment(DynamicDocument):
 
 
 class Post(Document):
+    # The converged typed post, fed by every source stream (ADR-0011). `source`
+    # says which stream produced it; `path` is its target in the fragment tree,
+    # computed by that source at transform time so export stays source-blind.
     post_id = StringField(required=True, unique=True)
+    source = StringField()  # "blogger" | "artima"
+    path = StringField()  # e.g. "posts/2026/02/slug.html"
     title = StringField()
     content_html = StringField()
     published = DateTimeField()

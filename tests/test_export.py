@@ -8,44 +8,20 @@ import json
 import re
 
 
-def test_fragment_path_mirrors_blogger_path():
-    from blogscraper.export import fragment_path
-
-    url = "https://holdenweb.blogspot.com/2026/02/im-depressed.html"
-    assert fragment_path(url) == "posts/2026/02/im-depressed.html"
-    # An untitled post has no title but still has a dated URL, so its slug
-    # comes from the URL, not the (absent) title.
-    untitled = "https://holdenweb.blogspot.com/2007/09/.html"
-    assert fragment_path(untitled) == "posts/2007/09/.html"
-
-
-def test_fragment_path_rejects_unmirrorable_url():
-    from blogscraper.export import fragment_path
-
-    # A URL that is not a dated post path is a real surprise: fail loudly
-    # rather than invent a path (ADR-0005's spirit, applied to export).
-    try:
-        fragment_path("https://holdenweb.blogspot.com/p/about.html")
-    except ValueError:
-        return
-    raise AssertionError("expected ValueError for a non-dated URL")
-
-
-def test_redirect_entry_maps_old_blogger_path_to_placeholdered_new_path():
-    # The cutover 301: old Blogger path -> new fragment path, with ROOT left as
-    # a placeholder so the consumer substitutes its own mount (e.g. /blog).
+def test_redirect_entry_maps_old_url_to_placeholdered_path():
+    # The cutover 301: old Blogger path -> new path, with ROOT left as a
+    # placeholder so the consumer substitutes its own mount (e.g. /blog).
     from blogscraper.export import redirect_entry
 
-    entry = redirect_entry("https://holdenweb.blogspot.com/2026/02/im-depressed.html")
+    entry = redirect_entry(
+        "https://holdenweb.blogspot.com/2026/02/im-depressed.html",
+        "posts/2026/02/im-depressed.html",
+    )
     assert entry == {
         "from": "/2026/02/im-depressed.html",
         "to": "${{{ROOT}}}/posts/2026/02/im-depressed.html",
         "status": 301,
     }
-    # Untitled posts have a dated URL too, so they map like any other.
-    untitled = redirect_entry("https://holdenweb.blogspot.com/2007/09/.html")
-    assert untitled["from"] == "/2007/09/.html"
-    assert untitled["to"] == "${{{ROOT}}}/posts/2007/09/.html"
 
 
 def test_collision_scan_flags_only_the_sentinels():
@@ -134,6 +110,8 @@ def test_export_all_writes_fragments_manifest_and_images(tmp_path, test_db):
 
     Post(
         post_id="tag:blogger.com,1999:post-1",
+        source="blogger",
+        path="posts/2020/01/first.html",
         title="First",
         original_url="https://holdenweb.blogspot.com/2020/01/first.html",
         published=__import__("datetime").datetime(2020, 1, 2),
@@ -146,6 +124,8 @@ def test_export_all_writes_fragments_manifest_and_images(tmp_path, test_db):
     ).save()
     Post(
         post_id="tag:blogger.com,1999:post-2",
+        source="blogger",
+        path="posts/2019/12/second.html",
         title="Second",
         original_url="https://holdenweb.blogspot.com/2019/12/second.html",
         published=__import__("datetime").datetime(2019, 12, 31),

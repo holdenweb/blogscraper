@@ -246,6 +246,26 @@ def build_entry(feed_item, meta, forum_entry, comments):
     return doc
 
 
+def artima_post_fields(entry) -> dict[str, Any]:
+    """Map an ArtimaEntry (the Artima stream's raw layer) to converged `post`
+    fields, so both blogs feed the one production line (ADR-0011)."""
+    from blogscraper.paths import artima_path
+
+    return {
+        "post_id": f"artima:thread-{entry.thread_id}",
+        "source": "artima",
+        "path": artima_path(entry.published, entry.title) if entry.published else None,
+        "title": entry.title,
+        "content_html": entry.body_html,
+        "published": entry.published,
+        "updated": entry.published,
+        "categories": [],  # Artima had no tags
+        "author_name": entry.author_name,
+        "comment_count": entry.comment_count,
+        "original_url": entry.permalink,
+    }
+
+
 def _forum_comments(fetch: Callable[[str], str], forum_id: int, thread_id: int):
     """Walk every forum page, returning (entry_message, all_comments)."""
     entry = None

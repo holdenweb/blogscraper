@@ -1,10 +1,10 @@
 """Fragment-tree export (Phase 4).
 
-Emits one content-only HTML fragment per post under ``posts/YYYY/MM/slug.html``,
-mirroring each post's original Blogger path (ADR-0007) so old-URL -> new-URL
-redirects reduce to a domain swap plus a root prefix. Harvested images are
-written under ``images/`` and a ``manifest.json`` carries per-fragment metadata
-for whatever decorates the content at serve time.
+Emits one content-only HTML fragment per post at the ``path`` its source set at
+transform time (``posts/YYYY/MM/slug.html``), so the exporter is source-blind —
+Blogger and Artima posts flow through the same line (ADR-0011). Harvested images
+are written under ``images/`` and a ``manifest.json`` carries per-fragment
+metadata for whatever decorates the content at serve time.
 
 The site root is unknown until the tree is mounted, so every generated URL is
 written with the placeholder ``${{{ROOT}}}`` and substituted at publish time by
@@ -19,12 +19,13 @@ import hashlib
 import importlib
 import json
 import mimetypes
-import re
 from pathlib import Path
 from typing import Callable
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
+
+from blogscraper.paths import blogger_path
 
 # The publish-time contract — the delimiter constants and the render helpers —
 # lives in its own dependency-free module so a consumer can copy it (ADR-0009).
@@ -35,24 +36,9 @@ from blogscraper.publish import (
     SENTINELS,
 )
 
-_POST_PATH = re.compile(r"/(\d{4})/(\d{2})/([^/]*)\.html?$")
 
-
-def fragment_path(original_url: str) -> str:
-    """``posts/YYYY/MM/slug.html`` mirrored from a Blogger post URL.
-
-    Raises ValueError for anything that is not a dated post URL, rather than
-    inventing a path for it.
-    """
-    m = _POST_PATH.search(original_url or "")
-    if not m:
-        raise ValueError(f"not a dated Blogger post URL: {original_url!r}")
-    year, month, slug = m.groups()
-    return f"posts/{year}/{month}/{slug}.html"
-
-
-def redirect_entry(original_url: str) -> dict:
-    """A cutover 301 from a post's old Blogger path to its new path.
+def redirect_entry(original_url: str, path: str) -> dict:
+    """A cutover 301 from a post's old Blogger URL to its new path.
 
     ``from`` is the literal old path; ``to`` keeps ROOT as a placeholder so the
     consumer substitutes its own mount exactly as it does for links inside
@@ -60,7 +46,7 @@ def redirect_entry(original_url: str) -> dict:
     """
     return {
         "from": urlparse(original_url).path,
-        "to": f"{ROOT_PLACEHOLDER}/{fragment_path(original_url)}",
+        "to": f"{ROOT_PLACEHOLDER}/{path}",
         "status": 301,
     }
 
@@ -80,7 +66,7 @@ def _internal_ref(href: str, known_paths: set[str]) -> str | None:
     if not parsed.netloc.endswith("blogspot.com"):
         return None
     try:
-        path = fragment_path(parsed.path)
+        path = blogger_path(parsed.path)
     except ValueError:
         return None
     return f"{ROOT_PLACEHOLDER}/{path}" if path in known_paths else None
@@ -147,6 +133,7 @@ def _iso(dt: datetime.datetime | None) -> str | None:
 def _manifest_entry(post, path: str) -> dict:
     return {
         "post_id": post.post_id,
+        "source": post.source,
         "title": post.title,
         "path": path,
         "original_url": post.original_url,
@@ -181,29 +168,22 @@ def export_all(out_dir, *, decorator: str | Callable | None = None) -> dict:
         images_written += 1
 
     posts = list(Post.objects)
-    known_paths: set[str] = set()
-    for p in posts:
-        try:
-            known_paths.add(fragment_path(p.original_url))
-        except ValueError:
-            pass
+    known_paths: set[str] = {p.path for p in posts if p.path}
 
     collisions: list[str] = []
     manifest_posts: list[dict] = []
     for p in posts:
-        try:
-            path = fragment_path(p.original_url)
-        except ValueError:
-            collisions.append(f"{p.post_id}: unmirrorable original_url {p.original_url!r}")
+        if not p.path:
+            collisions.append(f"{p.post_id}: no target path (source={p.source})")
             continue
         body = p.content_html or ""
         hit = find_collisions(body)
         if hit:
             collisions.append(f"{p.post_id}: body contains sentinel(s) {hit}")
         rewritten = rewrite_content(body, image_map=image_map, known_paths=known_paths)
-        entry = _manifest_entry(p, path)
+        entry = _manifest_entry(p, p.path)
         fragment = decorate(rewritten, entry)
-        dest = out / path
+        dest = out / p.path
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(fragment)
         manifest_posts.append(entry)
@@ -215,10 +195,15 @@ def export_all(out_dir, *, decorator: str | Callable | None = None) -> dict:
     }
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2))
 
-    # The cutover redirect map: old Blogger paths -> new placeholdered paths,
-    # for the consumer to serve as 301s.
+    # The cutover redirect map is a Blogger-migration concern — the old Artima
+    # URLs are on artima.com, which we do not control — so it lists only the
+    # Blogger posts (ADR-0011).
     redirects = sorted(
-        (redirect_entry(e["original_url"]) for e in manifest_posts),
+        (
+            redirect_entry(e["original_url"], e["path"])
+            for e in manifest_posts
+            if e["source"] == "blogger"
+        ),
         key=lambda r: r["from"],
     )
     (out / "redirects.json").write_text(

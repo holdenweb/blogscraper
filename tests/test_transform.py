@@ -121,6 +121,31 @@ def test_rebuild_derives_typed_collections(fixture_text, test_db):
     assert rebuild()["posts"] == Post.objects.count() == 2
 
 
+def test_rebuild_converges_blogger_and_artima(fixture_text, test_db):
+    # Both source streams land in the one `post` collection, each tagged with
+    # its source and carrying its own target path (ADR-0011).
+    from blogscraper.ingest import upsert_raw_post
+    from blogscraper.models import ArtimaEntry, Post
+    from blogscraper.transform import rebuild
+
+    for raw in raw_entries(fixture_text("posts_page1.xml")):
+        upsert_raw_post(raw)
+    ArtimaEntry(
+        thread_id=41682,
+        title="What Matters About Python?",
+        body_html="<p>hi</p>",
+        permalink="http://www.artima.com/weblogs/viewpost.jsp?thread=41682",
+        published=datetime.datetime(2007, 8, 6, 23, 27),
+        comment_count=19,
+    ).save()
+
+    result = rebuild()
+    assert result["posts"] == Post.objects.count() == 3  # 2 blogger + 1 artima
+    assert {p.source for p in Post.objects} == {"blogger", "artima"}
+    assert Post.objects.get(source="artima").path == "posts/2007/08/what-matters-about-python.html"
+    assert Post.objects(source="blogger").first().path.startswith("posts/")
+
+
 def test_rebuild_refuses_on_violations_and_changes_nothing(fixture_text, test_db):
     from blogscraper.ingest import capture_entry, upsert_raw_post
     from blogscraper.models import Post, RawPost

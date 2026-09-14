@@ -1,29 +1,42 @@
 # blogscraper
 
-Migrate the content of a Blogger blog into MongoDB, then generate a tree of
-HTML fragments for republishing under a new home (holdenweb.com).
+Capture Steve's blogs — a live Blogger blog and the old Artima weblog — into
+MongoDB, then generate a tree of HTML fragments for republishing under a new home
+(holdenweb.com).
 
-The blog is still live, so ingestion is idempotent and can be re-run to pick up
-new posts. Content is captured verbatim first and only then transformed, so the
-derived data can always be rebuilt from an immutable raw copy — the design that
-repaired an earlier silent corruption rather than papering over it.
+Each blog is captured verbatim first and only then transformed, so the derived
+data can always be rebuilt from an immutable raw copy — the design that repaired
+an earlier silent corruption rather than papering over it.
 
 ## Pipeline
 
+Two source streams feed one production line. Each source captures a blog its own
+way; both converge into the source-tagged `post` collection, and everything
+downstream runs on `post` regardless of origin (ADR-0011).
+
 ```
-scrape     Atom feed              ─▶  raw_post, raw_comment   (verbatim, upserted)
-transform  raw_post, raw_comment  ─▶  post, comment           (typed, validated)
-images     post                   ─▶  photo                   (Blogger images, GridFS)
-tags       post                   ─▶  tag                     (category term -> post ids)
-export     post + photo           ─▶  build/  (fragments, images, manifest)
+Sources (parallel streams)
+  Blogger   scrape   Atom feed        ─▶  raw_post, raw_comment
+  Artima    artima   Jive JSP + RSS   ─▶  artima
+
+Production line (source-blind, on `post`)
+  transform  raw_post + artima        ─▶  post (source-tagged, with a path), comment
+  images     post                     ─▶  photo
+  tags       post                     ─▶  tag
+  export     post (+ photo)           ─▶  build/  (fragments · manifest · redirects)
 ```
 
-- **scrape** — walk the public Atom feed (and each commented post's replies
+- **scrape** — walk the Blogger Atom feed (and each commented post's replies
   feed), storing every entry verbatim in the raw collections. Idempotent:
   re-running upserts on the Atom id, never duplicates.
-- **transform** — rebuild the typed `post`/`comment` collections from raw via a
-  single table of per-element rules. It validates the whole corpus first and
-  refuses to rebuild if any raw document breaks the table's assumptions.
+- **artima** — scrape the old Artima weblog (a Jive JSP site) into the `artima`
+  collection: entries from the RSS feed and each post page, comments from the
+  forum. Its own raw layer, parallel to `raw_post`.
+- **transform** — rebuild the converged `post`/`comment` collections from every
+  source in one pass — Blogger posts from `raw_post`, Artima from `artima`. Each
+  post carries its `source` and the `path` it will take in the tree. Validates
+  the Blogger raw first and refuses to rebuild if a raw document breaks the
+  table's assumptions.
 - **images** — harvest the Blogger-hosted images each post references — both the
   displayed `<img src>` and the full-size image its "click for full size" link
   points at — into the `photo` collection (unique `src`, idempotent, external
@@ -31,11 +44,10 @@ export     post + photo           ─▶  build/  (fragments, images, manifest)
 - **tags** — invert `Post.categories` into a `tag` collection: one document per
   category term, holding the `post_id`s that carry it. Rebuilt from `post` at
   will, like the other derived collections.
-- **export** — emit one content-only fragment per post under
-  `build/posts/YYYY/MM/slug.html`, mirroring each post's original Blogger path,
-  rewriting harvested image and internal post URLs to placeholders, and writing
-  the harvested images, a `manifest.json`, and a `redirects.json` (old Blogger
-  path → new path, for the cutover 301s) alongside.
+- **export** — emit one content-only fragment per post at its `path`
+  (`posts/YYYY/MM/slug.html`), rewriting harvested image and internal post URLs
+  to placeholders, and writing the harvested images, a `manifest.json`, and a
+  `redirects.json` (the Blogger cutover 301s) alongside.
 
 Design decisions and their rationale live in [`docs/adr/`](docs/adr/); the work
 queue is [`BACKLOG.md`](BACKLOG.md).
@@ -65,6 +77,13 @@ uv run python -m blogscraper scrape --blog-id 496482
 
 ```bash
 uv run python -m blogscraper validate
+```
+
+Scrape the second source — the old Artima weblog — into the `artima` collection
+(its entries then join `post` on the next `transform`):
+
+```bash
+just artima
 ```
 
 ```bash

@@ -85,6 +85,29 @@ def test_parse_forum_last_page_has_no_entry_and_no_next(fixture_text):
     assert len(page["comments"]) == 5  # 19 comments total, 14 on p1, 5 here
 
 
+def test_artima_post_fields_maps_to_converged_post():
+    # The Artima capture maps into the same `post` shape the Blogger stream
+    # produces, so both feed the one production line (ADR-0011).
+    from blogscraper.artima import artima_post_fields
+
+    class E:
+        thread_id = 41682
+        title = "What Matters About Python?"
+        body_html = "<p>hi</p>"
+        permalink = "http://www.artima.com/weblogs/viewpost.jsp?thread=41682"
+        published = datetime.datetime(2007, 8, 6, 23, 27)
+        comment_count = 19
+        author_name = "Steve Holden"
+
+    fields = artima_post_fields(E())
+    assert fields["source"] == "artima"
+    assert fields["post_id"] == "artima:thread-41682"
+    assert fields["path"] == "posts/2007/08/what-matters-about-python.html"
+    assert fields["content_html"] == "<p>hi</p>"
+    assert fields["categories"] == []
+    assert fields["original_url"].endswith("thread=41682")
+
+
 def test_build_entry_assembles_and_saves_with_embedded_comments(test_db):
     from blogscraper.artima import build_entry
     from blogscraper.models import ArtimaEntry

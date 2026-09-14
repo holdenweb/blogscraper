@@ -14,6 +14,11 @@ with their commit rather than being deleted.
       `<a href>`, e.g. Amazon, PayPal, quiz badges) are deliberately left as
       absolute URLs, not copied onto the new site. Revisit only if any turn out
       to matter enough to self-host.
+- [ ] Artima follow-ups deferred from ADR-0011: harvest Artima's own
+      (artima.com-hosted) images so its fragments are self-contained;
+      cross-source internal-link rewriting (export only rewrites blogspot
+      links); and converge comments (Blogger `comment` collection vs Artima
+      embedded) once the line actually renders comments.
 
 ## Awaiting Steve's decision (destructive or policy)
 
@@ -101,3 +106,12 @@ with their commit rather than being deleted.
       `Post.categories`, drop-and-rebuild (ADR-0004). Live: 752 tags over 1781
       taggings. Steve renamed the collection `tags`→`tag` and the model was
       reconciled to match. 44 tests green.
+- [x] Artima weblog scraped (2026-09-14, `aac8312`): `just artima` captures the
+      7 old Artima posts — entries + 111 comments — into the `artima` collection
+      via its own Jive-JSP scraper. No tags (Artima had none).
+- [x] Parallel source streams (ADR-0011, 2026-09-14): both blogs converge into
+      one source-tagged `post` collection feeding one production line. Each
+      source sets its own target `path` at transform time (`paths.py`); export
+      is now source-blind (uses `post.path`); `transform` rebuilds `post` from
+      `raw_post` + `artima`; redirects stay Blogger-only. Verified live: 546
+      fragments (539 + 7), Artima under `posts/YYYY/MM/slug.html`. 54 green.

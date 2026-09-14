@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Callable
 
+from blogscraper.paths import blogger_path
+
 Element = dict[str, Any]  # as produced by ingest.capture_element
 
 
@@ -132,6 +134,11 @@ def post_fields(raw: dict[str, Any]) -> dict[str, Any]:
     links = fields.get("links", [])
     fields["original_url"] = _link_href(links, "alternate", "text/html")
     fields["replies_feed_url"] = _link_href(links, "replies", "application/atom+xml")
+    fields["source"] = "blogger"
+    try:
+        fields["path"] = blogger_path(fields["original_url"] or "")
+    except ValueError:
+        fields["path"] = None  # export flags a post with no path as a collision
     return fields
 
 
@@ -141,8 +148,14 @@ def rebuild() -> dict[str, Any]:
     Refuses to touch the derived collections while any raw document
     violates the spec tables' assumptions - the corpus changed shape, and
     the specs need extending before a rebuild can be trusted (ADR-0005).
+
+    Builds the converged `post` collection from every source in one pass:
+    Blogger posts from `raw_post`, Artima posts from the `artima` capture
+    (ADR-0011). Only the Blogger raw is spec-validated; the Artima capture is
+    already typed.
     """
-    from blogscraper.models import Comment, Post, RawComment, RawPost
+    from blogscraper.artima import artima_post_fields
+    from blogscraper.models import ArtimaEntry, Comment, Post, RawComment, RawPost
 
     def raw_of(doc, id_field):
         return {"atom_id": getattr(doc, id_field), "elements": doc.elements}
@@ -160,6 +173,9 @@ def rebuild() -> dict[str, Any]:
     posts = comments = 0
     for doc in RawPost.objects:
         Post(**post_fields(raw_of(doc, "post_id"))).save()
+        posts += 1
+    for entry in ArtimaEntry.objects:
+        Post(**artima_post_fields(entry)).save()
         posts += 1
     for doc in RawComment.objects:
         Comment(**comment_fields(raw_of(doc, "comment_id"))).save()
