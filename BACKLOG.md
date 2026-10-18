@@ -34,8 +34,6 @@ with their commit rather than being deleted.
       on the publisher side. The generator hook is no longer the chrome
       mechanism — decide whether to keep it for generation-time content
       transforms or drop it.
-- [ ] Comment rendering: how (and whether) captured comments appear in the
-      exported fragment tree.
 - [ ] Better inter-linking of the blog articles, possibly via a sidebar.
 
 - [ ] `dump/` BSON dumps: keep in-tree untracked, commit, or relocate.
@@ -46,9 +44,9 @@ with their commit rather than being deleted.
       generate one from the other.
 - [ ] Decide fate of posts present in `dump/` but no longer in the live feed
       (reconciliation report will surface any — none expected).
-- [ ] Untitled posts (16, empty `<title type="text"/>`) get a slug from the URL
-      already, so export handles them; if they need a display title later,
-      derive one at decoration time.
+- [ ] Untitled posts: 12 of 16 now take their title from a leading bold heading
+      (ADR-0012); the remaining 4 open with plain prose and stay untitled (their
+      slug still comes from the URL). Give those a display title only if wanted.
 
 ## Done
 
@@ -115,3 +113,10 @@ with their commit rather than being deleted.
       is now source-blind (uses `post.path`); `transform` rebuilds `post` from
       `raw_post` + `artima`; redirects stay Blogger-only. Verified live: 546
       fragments (539 + 7), Artima under `posts/YYYY/MM/slug.html`. 54 green.
+- [x] On-page furniture + comment pages (ADR-0012, 2026-10-18): each fragment
+      gains a provenance line, bold tags, and an "N comments" link to paginated
+      comment pages (10/page) generated under `slug.comments/`; comments are
+      converged at render time from both sources; untitled posts take a leading
+      bold heading as their title. Verified live: 546 fragments + 310 comment
+      pages, 276 posts with comments (biggest 80 → 8 pages), 12/16 untitled
+      promoted, redirects still 539, publish round-trip clean. 62 green.

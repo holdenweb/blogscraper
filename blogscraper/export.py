@@ -19,6 +19,7 @@ import hashlib
 import importlib
 import json
 import mimetypes
+from html import escape
 from pathlib import Path
 from typing import Callable
 from urllib.parse import urlparse
@@ -130,7 +131,7 @@ def _iso(dt: datetime.datetime | None) -> str | None:
     return dt.isoformat() if dt else None
 
 
-def _manifest_entry(post, path: str) -> dict:
+def _manifest_entry(post, path: str, comment_pages=()) -> dict:
     return {
         "post_id": post.post_id,
         "source": post.source,
@@ -142,7 +143,104 @@ def _manifest_entry(post, path: str) -> dict:
         "categories": list(post.categories or []),
         "comment_count": post.comment_count,
         "thumbnail_url": post.thumbnail_url,
+        "comment_pages": list(comment_pages),
     }
+
+
+def comments_for(post) -> list[dict]:
+    """A post's comments as one uniform list, regardless of source (ADR-0012).
+
+    Render-time convergence of the two source-native shapes: Blogger `Comment`
+    docs keyed by the Atom post_id, and Artima `ArtimaComment`s embedded in the
+    entry located by the thread id inside the post_id.
+    """
+    from blogscraper.models import ArtimaEntry, Comment
+
+    if post.source == "artima":
+        thread_id = int(post.post_id.rsplit("-", 1)[1])
+        entry = ArtimaEntry.objects(thread_id=thread_id).first()
+        ordered = sorted(
+            entry.comments if entry else [],
+            key=lambda c: c.posted or datetime.datetime.min,
+        )
+        return [
+            {"author": c.author_name, "when": c.posted, "heading": c.subject,
+             "body_html": c.body_html or ""}
+            for c in ordered
+        ]
+    out = []
+    for c in Comment.objects(post_id=post.post_id).order_by("published"):
+        body = c.body or ""
+        body_html = body if c.body_type == "html" else escape(body)
+        out.append({"author": c.author_name, "when": c.published,
+                    "heading": c.title, "body_html": body_html})
+    return out
+
+
+def _furniture(post, n_comments: int, first_comment_page: str | None) -> tuple[str, str]:
+    """(top, bottom) HTML wrapping a post fragment: a provenance subheading above,
+    a bold tag list and a comments link below (ADR-0012)."""
+    top = ""
+    if post.original_url:
+        top = (
+            f'<p class="provenance">Originally published at '
+            f'<a href="{escape(post.original_url, quote=True)}">'
+            f'{escape(post.original_url)}</a></p>'
+        )
+    parts = []
+    cats = list(post.categories or [])
+    if cats:
+        parts.append('<p class="tags">' + " ".join(f"<b>{escape(t)}</b>" for t in cats) + "</p>")
+    if n_comments and first_comment_page:
+        label = f"{n_comments} comment" + ("" if n_comments == 1 else "s")
+        parts.append(
+            f'<p class="comments">'
+            f'<a href="{ROOT_PLACEHOLDER}/{first_comment_page}">{label}</a></p>'
+        )
+    return top, "".join(parts)
+
+
+def _comment_base(post_path: str) -> str:
+    return post_path[:-5] if post_path.endswith(".html") else post_path
+
+
+def render_comment_pages(post_path: str, comments: list[dict], per_page: int = 10):
+    """Paginated comment-page fragments as a list of (path, html), 10 per page,
+    under the post's own path (`<slug>.comments/<n>.html`)."""
+    base = _comment_base(post_path)
+    total = (len(comments) + per_page - 1) // per_page
+    pages = []
+    for i in range(total):
+        page_no = i + 1
+        chunk = comments[i * per_page:(i + 1) * per_page]
+        path = f"{base}.comments/{page_no}.html"
+        pages.append((path, _render_comment_page(chunk, page_no, total, base, post_path)))
+    return pages
+
+
+def _render_comment_page(chunk, page_no, total, base, post_path) -> str:
+    items = []
+    for c in chunk:
+        head = f'<h3>{escape(c["heading"])}</h3>' if c.get("heading") else ""
+        meta = escape(c.get("author") or "Anonymous")
+        if c.get("when") is not None:
+            meta += f" · {c['when'].isoformat()}"
+        items.append(
+            f'<div class="comment">{head}'
+            f'<p class="comment-meta">{meta}</p>{c["body_html"]}</div>'
+        )
+    nav = []
+    if page_no > 1:
+        nav.append(f'<a href="{ROOT_PLACEHOLDER}/{base}.comments/{page_no - 1}.html">Older comments</a>')
+    nav.append(f"Page {page_no} of {total}")
+    if page_no < total:
+        nav.append(f'<a href="{ROOT_PLACEHOLDER}/{base}.comments/{page_no + 1}.html">Newer comments</a>')
+    return (
+        f'<div class="comments-page">{"".join(items)}'
+        f'<p class="comment-nav">{" · ".join(nav)}</p>'
+        f'<p class="comment-back"><a href="{ROOT_PLACEHOLDER}/{post_path}">Back to post</a></p>'
+        f"</div>"
+    )
 
 
 def export_all(out_dir, *, decorator: str | Callable | None = None) -> dict:
@@ -181,11 +279,22 @@ def export_all(out_dir, *, decorator: str | Callable | None = None) -> dict:
         if hit:
             collisions.append(f"{p.post_id}: body contains sentinel(s) {hit}")
         rewritten = rewrite_content(body, image_map=image_map, known_paths=known_paths)
-        entry = _manifest_entry(p, p.path)
-        fragment = decorate(rewritten, entry)
+
+        comments = comments_for(p)
+        comment_pages = render_comment_pages(p.path, comments) if comments else []
+        page_paths = [path for path, _ in comment_pages]
+
+        entry = _manifest_entry(p, p.path, page_paths)
+        top, bottom = _furniture(p, len(comments), page_paths[0] if page_paths else None)
+        fragment = decorate(top + rewritten + bottom, entry)
+
         dest = out / p.path
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(fragment)
+        for cpath, chtml in comment_pages:
+            cdest = out / cpath
+            cdest.parent.mkdir(parents=True, exist_ok=True)
+            cdest.write_text(chtml)
         manifest_posts.append(entry)
 
     manifest = {

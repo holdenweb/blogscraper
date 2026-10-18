@@ -36,7 +36,9 @@ Production line (source-blind, on `post`)
   source in one pass — Blogger posts from `raw_post`, Artima from `artima`. Each
   post carries its `source` and the `path` it will take in the tree. Validates
   the Blogger raw first and refuses to rebuild if a raw document breaks the
-  table's assumptions.
+  table's assumptions. An untitled post whose body opens with a bold
+  pseudo-heading takes that as its title, with the heading stripped from the body
+  (ADR-0012).
 - **images** — harvest the Blogger-hosted images each post references — both the
   displayed `<img src>` and the full-size image its "click for full size" link
   points at — into the `photo` collection (unique `src`, idempotent, external
@@ -44,10 +46,15 @@ Production line (source-blind, on `post`)
 - **tags** — invert `Post.categories` into a `tag` collection: one document per
   category term, holding the `post_id`s that carry it. Rebuilt from `post` at
   will, like the other derived collections.
-- **export** — emit one content-only fragment per post at its `path`
+- **export** — emit one fragment per post at its `path`
   (`posts/YYYY/MM/slug.html`), rewriting harvested image and internal post URLs
-  to placeholders, and writing the harvested images, a `manifest.json`, and a
-  `redirects.json` (the Blogger cutover 301s) alongside.
+  to placeholders. Each fragment gains post-level furniture (ADR-0012): a
+  provenance line (*Originally published at …*), its tags in bold, and — when the
+  post has comments — an *N comments* link to paginated comment pages
+  (`slug.comments/N.html`, 10 per page) generated alongside. Also writes the
+  harvested images, a `manifest.json` (listing each post's `comment_pages`), and
+  a `redirects.json` (the Blogger cutover 301s). Site chrome is still the
+  consumer's job; this furniture is post content, not chrome.
 
 Design decisions and their rationale live in [`docs/adr/`](docs/adr/); the work
 queue is [`BACKLOG.md`](BACKLOG.md).

@@ -121,6 +121,50 @@ def test_rebuild_derives_typed_collections(fixture_text, test_db):
     assert rebuild()["posts"] == Post.objects.count() == 2
 
 
+def test_promote_leading_heading_promotes_and_strips():
+    # The 2002 untitled posts open with a leading <b> pseudo-heading (after
+    # optional <p>/<br> noise). Promote it to the title and remove it plus its
+    # trailing <br> run; the body prose remains.
+    import re
+
+    from blogscraper.transform import promote_leading_heading
+
+    html = "<p>\n<br /><b>Bugger Blogger!</b><br>\n<br />For some reason I have not yet...</p>"
+    title, body = promote_leading_heading(html)
+    assert title == "Bugger Blogger!"
+    assert "Bugger Blogger!" not in body
+    assert "For some reason I have not yet" in body
+    # no dangling <br> left at the start of the body
+    inner = re.sub(r"^<p[^>]*>", "", body.strip())
+    assert not inner.lstrip().startswith("<br")
+
+
+def test_promote_leading_heading_ignores_midbody_bold():
+    # A body that opens with prose (bold only used mid-body for emphasis) is left
+    # exactly as-is — only a *leading* bold is a heading.
+    from blogscraper.transform import promote_leading_heading
+
+    html = "<p>Is Python becoming a standard? I think <b>WebFlakiness</b> matters.</p>"
+    assert promote_leading_heading(html) == (None, html)
+
+
+def test_promote_if_untitled_only_acts_when_title_is_empty():
+    from blogscraper.transform import _promote_if_untitled
+
+    promoted = _promote_if_untitled(
+        {"title": None, "content_html": "<p><b>WikiBrowser</b><br>Body.</p>"}
+    )
+    assert promoted["title"] == "WikiBrowser"
+    assert "<b>WikiBrowser</b>" not in promoted["content_html"]
+
+    # A post that already has a title is never touched, even if it opens bold.
+    kept = _promote_if_untitled(
+        {"title": "Real Title", "content_html": "<p><b>X</b> body</p>"}
+    )
+    assert kept["title"] == "Real Title"
+    assert "<b>X</b>" in kept["content_html"]
+
+
 def test_rebuild_converges_blogger_and_artima(fixture_text, test_db):
     # Both source streams land in the one `post` collection, each tagged with
     # its source and carrying its own target path (ADR-0011).

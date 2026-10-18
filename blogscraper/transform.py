@@ -8,8 +8,10 @@ all this by hand, one throwaway script per field.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from datetime import datetime
+from html import unescape
 from typing import Any, Callable
 
 from blogscraper.paths import blogger_path
@@ -129,6 +131,42 @@ def _link_href(links: list[dict[str, str]], rel: str, type_: str) -> str | None:
     )
 
 
+_LEADING_BOLD = re.compile(
+    r"^(\s*<p[^>]*>)?\s*(?:<br\s*/?>\s*)*<b[^>]*>(.*?)</b>\s*(?:<br\s*/?>\s*)*",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def promote_leading_heading(html: str) -> tuple[str | None, str]:
+    """If the body opens with a leading <b> heading, return (its text, body with
+    the heading and its surrounding <br> noise removed); else (None, html).
+
+    Only a *leading* <b> — after an optional <p> wrapper and runs of
+    <br>/whitespace — is a heading; mid-body <b> emphasis and WikiWords are left
+    untouched (ADR-0012). Matched as a string rather than walked over a DOM: the
+    corpus's bare <br> tags defeat html.parser's sibling model.
+    """
+    if not html:
+        return None, html
+    m = _LEADING_BOLD.match(html)
+    if not m:
+        return None, html
+    title = unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip()
+    if not title:
+        return None, html
+    return title, (m.group(1) or "") + html[m.end():]
+
+
+def _promote_if_untitled(fields: dict[str, Any]) -> dict[str, Any]:
+    """Give an untitled post a title from a leading heading in its body."""
+    if not fields.get("title") and fields.get("content_html"):
+        title, body = promote_leading_heading(fields["content_html"])
+        if title:
+            fields["title"] = title
+            fields["content_html"] = body
+    return fields
+
+
 def post_fields(raw: dict[str, Any]) -> dict[str, Any]:
     fields = apply_specs(raw, POST_SPECS)
     links = fields.get("links", [])
@@ -172,10 +210,10 @@ def rebuild() -> dict[str, Any]:
     Comment.drop_collection()
     posts = comments = 0
     for doc in RawPost.objects:
-        Post(**post_fields(raw_of(doc, "post_id"))).save()
+        Post(**_promote_if_untitled(post_fields(raw_of(doc, "post_id")))).save()
         posts += 1
     for entry in ArtimaEntry.objects:
-        Post(**artima_post_fields(entry)).save()
+        Post(**_promote_if_untitled(artima_post_fields(entry))).save()
         posts += 1
     for doc in RawComment.objects:
         Comment(**comment_fields(raw_of(doc, "comment_id"))).save()
