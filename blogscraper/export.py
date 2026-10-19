@@ -73,19 +73,44 @@ def _internal_ref(href: str, known_paths: set[str]) -> str | None:
     return f"{ROOT_PLACEHOLDER}/{path}" if path in known_paths else None
 
 
+_MATHJAX_DEAD = "cdn.mathjax.org/mathjax/latest/MathJax.js"
+_MATHJAX_LIVE = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js"
+
+
+def _fix_resource_url(url: str) -> str:
+    """Repair a stale subresource URL (ADR-0013): the dead MathJax CDN becomes a
+    current HTTPS one (a scheme bump alone can't revive a decommissioned host),
+    and any remaining http:// becomes https:// — mixed content is blocked on the
+    HTTPS site. Hyperlinks are navigation, handled elsewhere and left as authored.
+    """
+    if not url:
+        return url
+    if _MATHJAX_DEAD in url:
+        query = url.partition("?")[2]
+        return _MATHJAX_LIVE + (f"?{query}" if query else "")
+    if url.startswith("http://"):
+        return "https://" + url[len("http://"):]
+    return url
+
+
 def rewrite_content(
     html: str, *, image_map: dict[str, str], known_paths: set[str]
 ) -> str:
-    """Rewrite harvested ``<img src>`` and internal ``<a href>`` to placeholders.
+    """Rewrite harvested ``<img src>`` and internal ``<a href>`` to placeholders,
+    repair stale subresource URLs, and leave the rest of the body as authored.
 
-    Only these attributes are touched; the rest of the body is left as authored
-    (BeautifulSoup edits attributes in place rather than re-escaping text).
+    Only attributes are touched (BeautifulSoup edits them in place rather than
+    re-escaping text).
     """
     soup = BeautifulSoup(html, "html.parser")
     for img in soup.find_all("img"):
         name = image_map.get(img.get("src"))
         if name:
             img["src"] = f"{IMAGE_ROOT_PLACEHOLDER}/images/{name}"
+    # Repair any remaining http:// subresource (incl. the dead MathJax CDN);
+    # harvested images are already placeholders and pass through untouched.
+    for el in soup.find_all(src=True):
+        el["src"] = _fix_resource_url(el["src"])
     for a in soup.find_all("a", href=True):
         # A link straight to a harvested image (Blogger's "full size" link)
         # goes to the image root; otherwise a link to one of our own posts.

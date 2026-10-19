@@ -120,3 +120,9 @@ with their commit rather than being deleted.
       bold heading as their title. Verified live: 546 fragments + 310 comment
       pages, 276 posts with comments (biggest 80 → 8 pages), 12/16 untitled
       promoted, redirects still 539, publish round-trip clean. 62 green.
+- [x] Repair stale subresource URLs (ADR-0013, 2026-10-19): export rewrites the
+      dead `http://cdn.mathjax.org` loader to HTTPS cdnjs MathJax 2.7.9 (fixing
+      the 3 maths posts, reported live by Steve) and upgrades every other
+      `http://` `src` to `https://` (21 img, 9 script, 1 embed) so nothing is
+      mixed-content-blocked; http hyperlinks left as authored. 64 green. Steve
+      re-publishes.

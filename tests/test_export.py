@@ -63,6 +63,39 @@ def test_rewrite_image_src_only_when_harvested():
     assert other in out  # not harvested, so left alone
 
 
+def test_rewrite_repairs_mathjax_cdn_and_upgrades_http_subresources():
+    from blogscraper.export import rewrite_content
+
+    html = (
+        '<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js'
+        '?config=TeX-AMS-MML_HTMLorMML"></script>'
+        '<img src="http://g-images.amazon.com/x.jpg"/>'
+        '<script src="http://code.jquery.com/jquery.js"></script>'
+        '<embed src="http://example.com/e.swf"/>'
+        '<a href="http://en.wikipedia.org/wiki/X">link</a>'
+    )
+    out = rewrite_content(html, image_map={}, known_paths=set())
+    # Dead MathJax CDN -> current HTTPS CDN, config query preserved.
+    assert ("https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js"
+            "?config=TeX-AMS-MML_HTMLorMML") in out
+    assert "cdn.mathjax.org" not in out
+    # Other http:// subresources upgraded to https.
+    assert 'src="https://g-images.amazon.com/x.jpg"' in out
+    assert 'src="https://code.jquery.com/jquery.js"' in out
+    assert 'src="https://example.com/e.swf"' in out
+    # Hyperlinks are navigation, not mixed content — left as authored.
+    assert 'href="http://en.wikipedia.org/wiki/X"' in out
+
+
+def test_harvested_image_wins_over_http_upgrade():
+    from blogscraper.export import rewrite_content
+
+    src = "http://blogger.googleusercontent.com/img/h.png"
+    out = rewrite_content(f'<img src="{src}"/>', image_map={src: "h.png"}, known_paths=set())
+    assert "${{{IMAGE_ROOT}}}/images/h.png" in out
+    assert "http://blogger" not in out
+
+
 def test_rewrite_full_size_image_links():
     # Blogger's "click for full size" <a href> to a harvested image is
     # rewritten to the image root, just like the <img src> it wraps, while an

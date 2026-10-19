@@ -48,7 +48,9 @@ Production line (source-blind, on `post`)
   will, like the other derived collections.
 - **export** — emit one fragment per post at its `path`
   (`posts/YYYY/MM/slug.html`), rewriting harvested image and internal post URLs
-  to placeholders. Each fragment gains post-level furniture (ADR-0012): a
+  to placeholders and repairing stale subresources — the dead MathJax CDN and
+  any `http://` `src` — so nothing is blocked as mixed content on the HTTPS site
+  (ADR-0013). Each fragment gains post-level furniture (ADR-0012): a
   provenance line (*Originally published at …*), its tags in bold, and — when the
   post has comments — an *N comments* link to paginated comment pages
   (`slug.comments/N.html`, 10 per page) generated alongside. Also writes the
