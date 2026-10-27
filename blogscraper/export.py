@@ -239,11 +239,11 @@ def render_comment_pages(post_path: str, comments: list[dict], per_page: int = 1
         page_no = i + 1
         chunk = comments[i * per_page:(i + 1) * per_page]
         path = f"{base}.comments/{page_no}.html"
-        pages.append((path, _render_comment_page(chunk, page_no, total, post_path)))
+        pages.append((path, _render_comment_page(chunk, page_no, total, base, post_path)))
     return pages
 
 
-def _render_comment_page(chunk, page_no, total, post_path) -> str:
+def _render_comment_page(chunk, page_no, total, base, post_path) -> str:
     items = []
     for c in chunk:
         head = f'<h3>{escape(c["heading"])}</h3>' if c.get("heading") else ""
@@ -254,23 +254,16 @@ def _render_comment_page(chunk, page_no, total, post_path) -> str:
             f'<div class="comment">{head}'
             f'<p class="comment-meta">{meta}</p>{c["body_html"]}</div>'
         )
-    # Links inside a comment page are all local -- sibling pages in the same
-    # <slug>.comments/ directory, and the post one level up -- so they are
-    # relative, not ${{{ROOT}}} placeholders. Comment pages are served as
-    # stored (the consumer substitutes only listed posts, ADR-0007), so a
-    # placeholder here reaches the browser unfilled; a relative link needs no
-    # substitution and survives any remount without regeneration.
-    post_file = post_path.rsplit("/", 1)[-1]
     nav = []
     if page_no > 1:
-        nav.append(f'<a href="{page_no - 1}.html">Older comments</a>')
+        nav.append(f'<a href="{ROOT_PLACEHOLDER}/{base}.comments/{page_no - 1}.html">Older comments</a>')
     nav.append(f"Page {page_no} of {total}")
     if page_no < total:
-        nav.append(f'<a href="{page_no + 1}.html">Newer comments</a>')
+        nav.append(f'<a href="{ROOT_PLACEHOLDER}/{base}.comments/{page_no + 1}.html">Newer comments</a>')
     return (
         f'<div class="comments-page">{"".join(items)}'
         f'<p class="comment-nav">{" · ".join(nav)}</p>'
-        f'<p class="comment-back"><a href="../{post_file}">Back to post</a></p>'
+        f'<p class="comment-back"><a href="{ROOT_PLACEHOLDER}/{post_path}">Back to post</a></p>'
         f"</div>"
     )
 
