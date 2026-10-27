@@ -213,10 +213,13 @@ def test_render_comment_pages_paginates_ten_per_page():
     p1, p2, p3 = (pages[f"posts/2020/01/a.comments/{n}.html"] for n in (1, 2, 3))
     assert "c0." in p1 and "c9." in p1 and "c10." not in p1  # 10 to a page
     assert "c22." in p3
-    assert f"{ROOT_PLACEHOLDER}/posts/2020/01/a.comments/2.html" in p1  # newer →
-    assert f"{ROOT_PLACEHOLDER}/posts/2020/01/a.comments/1.html" in p2  # ← older
+    assert 'href="2.html"' in p1  # newer → relative sibling, no ROOT substitution needed
+    assert 'href="1.html"' in p2  # ← older
     assert "Page 2 of 3" in p2
-    assert f"{ROOT_PLACEHOLDER}/posts/2020/01/a.html" in p1  # back to post
+    assert 'href="../a.html"' in p1  # back to post: up out of <slug>.comments/
+    # Comment pages are served as stored (not placeholder-substituted), so they
+    # must carry no ${{{ROOT}}} that would reach the browser unfilled.
+    assert ROOT_PLACEHOLDER not in p1 + p2 + p3
 
 
 def test_export_all_generates_comment_pages(tmp_path, test_db):
