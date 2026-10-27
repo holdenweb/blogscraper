@@ -1,7 +1,9 @@
 # 12. On-page furniture and comment pages are generated here
 
 Date: 2026-10-18
-Status: Accepted
+Status: Accepted. **Amended by ADR-0014**: comment pages are decorated by the
+consumer, their manifest listing is consumer contract, and comment content is
+collision-scanned like post bodies.
 
 ## Context
 

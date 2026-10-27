@@ -242,10 +242,44 @@ def test_export_all_generates_comment_pages(tmp_path, test_db):
     assert (tmp_path / "posts/2020/01/a.comments/2.html").exists()  # 10 + 2
     manifest = json.loads((tmp_path / "manifest.json").read_text())
     entry = next(p for p in manifest["posts"] if p["post_id"] == "tag:p1")
+    # Consumer contract (ADR-0014): export-relative paths, page 1 first.
     assert entry["comment_pages"] == [
         "posts/2020/01/a.comments/1.html",
         "posts/2020/01/a.comments/2.html",
     ]
+
+
+def test_export_all_reports_sentinels_in_comment_content(tmp_path, test_db):
+    # Comment pages are decorated like posts (ADR-0014), so a stray sentinel in
+    # any externally sourced comment string would break the consumer's render
+    # exactly as one in a post body would -- and is reported the same way,
+    # identified by post and by comment position (1 = oldest).
+    import datetime
+
+    from blogscraper.export import export_all
+    from blogscraper.models import Comment, Post
+
+    Post(post_id="tag:p1", source="blogger", path="posts/2020/01/a.html", title="A",
+         original_url="https://holdenweb.blogspot.com/2020/01/a.html",
+         content_html="<p>clean body</p>").save()
+    for i, (title, body, author) in enumerate([
+        (None, "<p>try ${{{ROOT}}} here</p>", "Ann"),
+        ("Re: ${{% oops %}}}", "<p>fine</p>", "Bob"),
+        (None, "<p>fine</p>", "Cat ${{# x #}}}"),
+        ("Re: A", "<p>plain ${HOME} and {{ x }}</p>", "Dan"),  # not sentinels
+    ]):
+        Comment(comment_id=f"c{i}", post_id="tag:p1", title=title, body=body,
+                body_type="html", author_name=author,
+                published=datetime.datetime(2020, 1, 1, 0, i)).save()
+
+    result = export_all(tmp_path)
+    assert result["collisions"] == [
+        "tag:p1: comment 1 body_html contains sentinel(s) ['${{{']",
+        "tag:p1: comment 2 heading contains sentinel(s) ['${{%']",
+        "tag:p1: comment 3 author contains sentinel(s) ['${{#']",
+    ]
+    # Surfaced, not skipped: the page is still written, as a flagged body is.
+    assert (tmp_path / "posts/2020/01/a.comments/1.html").exists()
 
 
 def test_export_all_writes_fragments_manifest_and_images(tmp_path, test_db):
@@ -311,6 +345,11 @@ def test_export_all_writes_fragments_manifest_and_images(tmp_path, test_db):
     assert entry["categories"] == ["python"]
     assert entry["comment_count"] == 3
     assert entry["original_url"].endswith("/2020/01/first.html")
+    # Consumer contract (ADR-0014): comment_pages is on every post -- an empty
+    # list, not an absent key, when there are none. comment_count is Blogger's
+    # own figure; the pages follow the comments actually captured.
+    for e in manifest["posts"]:
+        assert "comment_pages" in e and e["comment_pages"] == []
 
     # The cutover redirect map: old Blogger path -> new placeholdered path.
     redirects = json.loads((tmp_path / "redirects.json").read_text())

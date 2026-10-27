@@ -272,8 +272,8 @@ def export_all(out_dir, *, decorator: str | Callable | None = None) -> dict:
     """Generate the whole fragment tree, images and manifest into ``out_dir``.
 
     Returns a summary; ``collisions`` lists posts whose URL could not be
-    mirrored or whose body contains a placeholder sentinel — surfaced loudly,
-    never silently skipped.
+    mirrored or whose body or comments contain a placeholder sentinel —
+    surfaced loudly, never silently skipped.
     """
     from blogscraper.models import PhotoImage, Post
 
@@ -306,6 +306,16 @@ def export_all(out_dir, *, decorator: str | Callable | None = None) -> dict:
         rewritten = rewrite_content(body, image_map=image_map, known_paths=known_paths)
 
         comments = comments_for(p)
+        # Comment pages are decorated like posts (ADR-0014), so a sentinel in a
+        # comment breaks the consumer's render just as one in a body does. Scan
+        # the inputs, not the rendered page, which carries our own ${{{ROOT}}}.
+        for n, c in enumerate(comments, 1):
+            for field in ("body_html", "heading", "author"):
+                hit = find_collisions(c.get(field) or "")
+                if hit:
+                    collisions.append(
+                        f"{p.post_id}: comment {n} {field} contains sentinel(s) {hit}"
+                    )
         comment_pages = render_comment_pages(p.path, comments) if comments else []
         page_paths = [path for path, _ in comment_pages]
 

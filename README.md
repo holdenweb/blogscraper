@@ -53,7 +53,8 @@ Production line (source-blind, on `post`)
   (ADR-0013). Each fragment gains post-level furniture (ADR-0012): a
   provenance line (*Originally published at …*), its tags in bold, and — when the
   post has comments — an *N comments* link to paginated comment pages
-  (`slug.comments/N.html`, 10 per page) generated alongside. Also writes the
+  (`slug.comments/N.html`, 10 per page) generated alongside, which the consumer
+  decorates exactly as it does posts (ADR-0014). Also writes the
   harvested images, a `manifest.json` (listing each post's `comment_pages`), and
   a `redirects.json` (the Blogger cutover 301s). Site chrome is still the
   consumer's job; this furniture is post content, not chrome.
@@ -127,7 +128,7 @@ placeholders — `${{{ROOT}}}` for internal post links, `${{{IMAGE_ROOT}}}` for
 images — and publishing substitutes the site's mounted roots through Jinja:
 
 ```python
-from blogscraper.export import render_fragment
+from blogscraper.publish import render_fragment
 
 html = render_fragment(open("build/posts/2026/02/im-depressed.html").read(), "/blog")
 ```
@@ -144,9 +145,13 @@ only the root placeholders substitute. The generator scans for those sentinels
 rather than escaping content, so bodies stay byte-faithful (see
 [ADR-0009](docs/adr/0009-distinctive-root-sentinel.md)).
 
-Site chrome is applied by the consuming site at serve time: it decorates the
-paths the manifest lists (those under `posts/`) and serves everything else
-literally ([ADR-0007](docs/adr/0007-fragment-tree-export.md)). The generator's
+Site chrome is applied by the consuming site at serve time: it decorates each
+path the manifest lists — every post's `path` **and** each entry of its
+`comment_pages` — and serves everything else literally
+([ADR-0007](docs/adr/0007-fragment-tree-export.md),
+[ADR-0014](docs/adr/0014-comment-pages-are-decorated-content.md)). Comment pages
+are decorated content but not index entries; `comment_pages` is on every post,
+empty when there are none, ordered page 1 first. The generator's
 optional `--decorator pkg.module:callable` hook is for generation-time content
 transforms, not chrome.
 

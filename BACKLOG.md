@@ -126,3 +126,14 @@ with their commit rather than being deleted.
       `http://` `src` to `https://` (21 img, 9 script, 1 embed) so nothing is
       mixed-content-blocked; http hyperlinks left as authored. 64 green. Steve
       re-publishes.
+- [x] Comment pages are decorated content (ADR-0014, 2026-10-27): live
+      comment-page nav reached the browser as literal `${{{ROOT}}}` because
+      podpack-pages served comment pages as stored. An interim relative-links
+      fix (`b76a71f`) was reverted (`dc143eb`) in favour of the consumer
+      decorating them like posts; ADR-0014 makes `comment_pages` (always
+      present, ordered, export-relative) consumer contract, and export now
+      collision-scans each comment's body, heading and author. Live: 1237
+      comments scanned, 0 sentinels; 546 posts all carry `comment_pages`, 276
+      with 310 pages. README `render_fragment` import corrected. 65 green.
+      **Do not republish** until podpack-pages decorates comment pages and is
+      deployed.

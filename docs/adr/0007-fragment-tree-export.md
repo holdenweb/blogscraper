@@ -5,7 +5,9 @@ Status: Accepted. Decoration **selection** is decided below (2026-09-05). The
 `${ROOT}` delimiter and literal-`${` escaping decisions are **superseded by
 ADR-0009**, which adopts the distinctive `${{{ROOT}}}` sentinel and scans rather
 than escapes; the tree structure, path mirroring, and manifest stand. Whether
-the generator's `--decorator` hook is kept is a remaining backlog item.
+the generator's `--decorator` hook is kept is a remaining backlog item. The
+decorated set is made explicit by **ADR-0014**: posts' paths and their
+`comment_pages`.
 
 ## Context
 
